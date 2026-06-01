@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Annonces de location</h1>
+
+<form method="GET">
+    <input type="text" name="city" placeholder="Ville">
+    <input type="number" name="min_price" placeholder="Prix minimum">
+    <input type="number" name="max_price" placeholder="Prix maximum">
+    <button type="submit">Rechercher</button>
+</form>
+
+{% for listing in listings %}
+<div class="card">
+    <h2>{{ listing.title }}</h2>
+
+    {% if listing.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + listing.photo) }}">
+    {% endif %}
+
+    <p>{{ listing.location }}</p>
+    <p>{{ listing.price }} €</p>
+
+    <a href="{{ url_for('listing_detail', id=listing.id) }}">
+        Voir détails
+    </a>
+</div>
+{% endfor %}
+
+{% endblock %}

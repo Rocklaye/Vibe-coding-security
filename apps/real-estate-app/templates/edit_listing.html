@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Modifier l'annonce</h1>
+
+<form method="POST">
+
+    <input type="text" name="title" value="{{ listing.title }}">
+
+    <textarea name="description">{{ listing.description }}</textarea>
+
+    <input type="number" name="price" value="{{ listing.price }}">
+
+    <input type="text" name="location" value="{{ listing.location }}">
+
+    <button type="submit">Sauvegarder</button>
+
+</form>
+
+{% endblock %}

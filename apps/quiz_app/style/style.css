@@ -1,0 +1,13 @@
+/* Custom styles (if needed beyond Bootstrap) */
+body {
+    background-color: #f8f9fa;
+}
+
+.question-block {
+    border-left: 4px solid #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.card {
+    border: none;
+}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center text-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-5">
+                <h1 class="display-4 mb-3">Résultat !</h1>
+                <h4>{{ quiz.title }}</h4>
+                <div class="mt-4 mb-4">
+                    <span class="display-1 fw-bold {% if score >= total/2 %}text-success{% else %}text-danger{% endif %}">
+                        {{ score }}
+                    </span>
+                    <span class="fs-2 text-muted">/ {{ total }}</span>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary mt-3">Retour au tableau de bord</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

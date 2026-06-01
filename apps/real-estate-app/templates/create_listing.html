@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Publier une annonce</h1>
+
+<form method="POST" enctype="multipart/form-data">
+
+    <input type="text" name="title" placeholder="Titre" required>
+
+    <textarea name="description" placeholder="Description"></textarea>
+
+    <input type="number" name="price" placeholder="Prix" required>
+
+    <input type="text" name="location" placeholder="Ville" required>
+
+    <input type="file" name="photo">
+
+    <button type="submit">Publier</button>
+
+</form>
+
+{% endblock %}

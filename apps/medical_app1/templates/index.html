@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediCore — Dossiers Médicaux</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ═══ SPLASH / AUTH SCREEN ═══ -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-bg">
+    <div class="auth-blob b1"></div>
+    <div class="auth-blob b2"></div>
+    <div class="auth-blob b3"></div>
+  </div>
+  <div class="auth-card">
+    <div class="brand">
+      <span class="brand-icon">⚕</span>
+      <span class="brand-name">MediCore</span>
+    </div>
+    <p class="brand-sub">Gestion sécurisée des dossiers médicaux</p>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="tab-btn active" data-tab="login">Connexion</button>
+      <button class="tab-btn" data-tab="register">Inscription</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="login-form" class="auth-form active">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="votre@email.fr" required />
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="login-password" placeholder="••••••••" required />
+      </div>
+      <div id="login-error" class="form-error hidden"></div>
+      <button type="submit" class="btn-primary">Se connecter</button>
+      <div class="demo-hint">
+        <strong>Démo médecin :</strong> dr.dupont@medicore.fr / medecin123<br>
+        <strong>Démo patient :</strong> jean.martin@example.com / patient123
+      </div>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form id="register-form" class="auth-form">
+      <div class="field-row">
+        <div class="field">
+          <label>Nom complet</label>
+          <input type="text" id="reg-name" placeholder="Jean Dupont" required />
+        </div>
+        <div class="field">
+          <label>Rôle</label>
+          <select id="reg-role">
+            <option value="patient">Patient</option>
+            <option value="doctor">Médecin</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="votre@email.fr" required />
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="reg-password" placeholder="••••••••" required minlength="6" />
+      </div>
+
+      <!-- Patient-only fields -->
+      <div id="patient-fields">
+        <div class="field-row">
+          <div class="field">
+            <label>Date de naissance</label>
+            <input type="date" id="reg-dob" />
+          </div>
+          <div class="field">
+            <label>Groupe sanguin</label>
+            <select id="reg-blood">
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option>
+              <option>O+</option><option>O-</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Allergies connues</label>
+          <input type="text" id="reg-allergies" placeholder="ex: Pénicilline, Aspirine" />
+        </div>
+        <div class="field">
+          <label>Téléphone</label>
+          <input type="tel" id="reg-phone" placeholder="06 00 00 00 00" />
+        </div>
+      </div>
+
+      <div id="register-error" class="form-error hidden"></div>
+      <button type="submit" class="btn-primary">Créer mon compte</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="app-screen" class="screen">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">⚕</span>
+      <span>MediCore</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <!-- populated by JS -->
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip" id="user-chip"></div>
+      <button class="logout-btn" id="logout-btn">Déconnexion</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- ── DOCTOR: Liste des patients ── -->
+    <section id="view-patients" class="view">
+      <div class="view-header">
+        <div>
+          <h1>Mes patients</h1>
+          <p class="sub">Gérez les dossiers médicaux de vos patients</p>
+        </div>
+        <div class="header-actions">
+          <input type="search" id="patient-search" placeholder="🔍  Rechercher un patient…" class="search-input" />
+        </div>
+      </div>
+      <div id="patients-grid" class="patients-grid"></div>
+    </section>
+
+    <!-- ── DOSSIER PATIENT (médecin view) ── -->
+    <section id="view-record" class="view">
+      <div class="view-header">
+        <button class="back-btn" id="back-to-list">← Retour à la liste</button>
+      </div>
+      <div id="record-content"></div>
+    </section>
+
+    <!-- ── MON DOSSIER (patient view) ── -->
+    <section id="view-my-record" class="view">
+      <div class="view-header">
+        <div>
+          <h1>Mon dossier médical</h1>
+          <p class="sub">Consultez et mettez à jour vos informations</p>
+        </div>
+      </div>
+      <div id="my-record-content"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

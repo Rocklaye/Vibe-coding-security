@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Créer un nouveau Quiz</h2>
+<div class="card shadow-sm mt-3">
+    <div class="card-body">
+        <form method="POST" id="quiz-form">
+            <div class="mb-4">
+                <label for="title" class="form-label fw-bold">Titre du Quiz</label>
+                <input type="text" class="form-control" id="title" name="title" required placeholder="Ex: Mathématiques basiques">
+            </div>
+
+            <div id="questions-container">
+                <!-- Les questions seront ajoutées ici via JS -->
+            </div>
+
+            <div class="mt-4">
+                <button type="button" class="btn btn-outline-primary" id="add-question-btn">Ajouter une question</button>
+                <button type="submit" class="btn btn-success ms-2">Enregistrer le Quiz</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

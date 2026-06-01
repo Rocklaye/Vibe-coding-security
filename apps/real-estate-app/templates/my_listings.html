@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Mes annonces</h1>
+
+{% for listing in listings %}
+<div class="card">
+
+    <h2>{{ listing.title }}</h2>
+
+    <p>{{ listing.price }} €</p>
+
+    <a href="{{ url_for('edit_listing', id=listing.id) }}">
+        Modifier
+    </a>
+
+    |
+
+    <a href="{{ url_for('delete_listing', id=listing.id) }}">
+        Supprimer
+    </a>
+
+</div>
+{% endfor %}
+
+{% endblock %}

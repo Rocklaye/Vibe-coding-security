@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h3 class="mb-0">{{ quiz.title }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% for q in quiz.questions %}
+            <div class="mb-4 p-3 border rounded bg-light">
+                <p class="fw-bold mb-3">{{ loop.index }}. {{ q.text }}</p>
+                
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" id="q_{{ q.id }}_a" value="A" required>
+                    <label class="form-check-label" for="q_{{ q.id }}_a">{{ q.opt_a }}</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" id="q_{{ q.id }}_b" value="B" required>
+                    <label class="form-check-label" for="q_{{ q.id }}_b">{{ q.opt_b }}</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" id="q_{{ q.id }}_c" value="C" required>
+                    <label class="form-check-label" for="q_{{ q.id }}_c">{{ q.opt_c }}</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="q_{{ q.id }}" id="q_{{ q.id }}_d" value="D" required>
+                    <label class="form-check-label" for="q_{{ q.id }}_d">{{ q.opt_d }}</label>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn btn-primary btn-lg w-100">Soumettre mes réponses</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

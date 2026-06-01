@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card">
+
+    <h1>{{ listing.title }}</h1>
+
+    {% if listing.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + listing.photo) }}">
+    {% endif %}
+
+    <p>{{ listing.description }}</p>
+
+    <p><strong>Ville :</strong> {{ listing.location }}</p>
+
+    <p><strong>Prix :</strong> {{ listing.price }} €</p>
+
+</div>
+
+<div class="card">
+
+    <h2>Contacter le propriétaire</h2>
+
+    <form method="POST">
+
+        <input type="text" name="name" placeholder="Votre nom" required>
+
+        <input type="email" name="email" placeholder="Votre email" required>
+
+        <textarea name="message" placeholder="Votre message"></textarea>
+
+        <button type="submit">Envoyer</button>
+
+    </form>
+
+</div>
+
+{% endblock %}

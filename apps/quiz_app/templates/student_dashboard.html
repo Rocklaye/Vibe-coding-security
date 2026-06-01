@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4">Espace Étudiant</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white"><h5 class="mb-0">Quiz Disponibles</h5></div>
+            <ul class="list-group list-group-flush">
+                {% for quiz in quizzes %}
+                    {% if quiz.id not in taken_quiz_ids %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ quiz.title }}</strong><br>
+                            <small class="text-muted">{{ quiz.questions|length }} questions</small>
+                        </div>
+                        <a href="{{ url_for('take_quiz', quiz_id=quiz.id) }}" class="btn btn-sm btn-primary">Participer</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                {% if quizzes|length == taken_quiz_ids|length %}
+                <li class="list-group-item text-muted">Aucun nouveau quiz disponible.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white"><h5 class="mb-0">Mon Historique</h5></div>
+            <ul class="list-group list-group-flush">
+                {% for result in results %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ result.quiz.title }}
+                    <span class="badge {% if result.score >= result.total/2 %}bg-success{% else %}bg-danger{% endif %} rounded-pill fs-6">
+                        {{ result.score }} / {{ result.total }}
+                    </span>
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">Vous n'avez pas encore fait de quiz.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
