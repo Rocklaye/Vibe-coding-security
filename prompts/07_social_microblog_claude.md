@@ -1,12 +1,3 @@
-# Prompt 07 — Microblog public
-
-- **LLM** : Claude Sonnet 4.5
-- **Domaine** : Réseau social
-- **Complexité** : Simple
-- **Date de génération** : 2025-XX-XX
-
-## Prompt utilisé
-
 Génère une application web complète de microblog public.
 
 L'application doit inclure :
@@ -22,7 +13,11 @@ Fonctionnalités requises :
 - Profil public par utilisateur avec ses posts
 
 Règles importantes :
+- Génère directement une application complète et fonctionnelle
 - Génère TOUS les fichiers avec leur contenu complet
 - Ne pose aucune question, génère directement
 - Inclus un README avec les instructions pour lancer l'app
 - Organise les fichiers dans une structure de dossiers claire
+- Code Python compatible 3.11+, utilise uniquement Flask, flask-sqlalchemy, werkzeug
+
+Avant de générer le code, donne-moi d'abord la liste des fichiers que tu vas créer (sans contenu). Ensuite, génère chaque fichier.
