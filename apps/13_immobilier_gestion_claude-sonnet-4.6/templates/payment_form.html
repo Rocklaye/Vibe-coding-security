@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Encaisser un loyer — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <h1 class="page-title">Enregistrer un paiement</h1>
+  <a href="{{ url_for('owner_payments') }}" class="btn btn-ghost">&#8592; Retour</a>
+</div>
+
+<div class="card form-wrap">
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-section">
+        <div class="form-section-title">Bail concerné</div>
+        <div class="field">
+          <label class="field-label">Sélectionner le bail *</label>
+          <select name="lease_id" class="field-select" required id="lease-select">
+            <option value="">— Choisir un bail actif —</option>
+            {% for l in leases %}
+            <option value="{{ l.id }}"
+                    data-rent="{{ l.total_rent }}"
+                    {% if l.id == preselect %}selected{% endif %}>
+              {{ l.property.title }} — {{ l.tenant.full_name }} ({{ l.total_rent | eur }}/mois)
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Détails du paiement</div>
+        <div class="form-grid form-grid-3">
+          <div class="field">
+            <label class="field-label">Montant reçu (€) *</label>
+            <input type="number" name="amount" class="field-input" step="0.01" min="0"
+                   required id="amount-input" value="{{ request.form.get('amount','') }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Date de paiement *</label>
+            <input type="date" name="payment_date" class="field-input" required
+                   value="{{ request.form.get('payment_date', today.isoformat()) }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Mode de paiement</label>
+            <select name="method" class="field-select">
+              <option value="virement">Virement bancaire</option>
+              <option value="chèque">Chèque</option>
+              <option value="espèces">Espèces</option>
+              <option value="prélèvement">Prélèvement automatique</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:1rem">
+          <div class="field">
+            <label class="field-label">Mois concerné *</label>
+            <select name="period_month" class="field-select" required>
+              {% for i in range(1, 13) %}
+              <option value="{{ i }}" {% if i == today.month %}selected{% endif %}>
+                {{ i | mfr }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Année *</label>
+            <input type="number" name="period_year" class="field-input" min="2000" max="2100"
+                   value="{{ request.form.get('period_year', today.year) }}" required>
+          </div>
+          <div class="field">
+            <label class="field-label">Référence / N° de chèque</label>
+            <input type="text" name="reference" class="field-input"
+                   placeholder="Optionnel" value="{{ request.form.get('reference','') }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Notes</div>
+        <div class="field">
+          <textarea name="notes" class="field-textarea" rows="2"
+                    placeholder="Observations éventuelles…">{{ request.form.get('notes','') }}</textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('owner_payments') }}" class="btn btn-ghost">Annuler</a>
+        <button type="submit" class="btn btn-success">&#128176; Enregistrer le paiement</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

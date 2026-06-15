@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — SecOps</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-box">
+    <span class="auth-logo">&#128737;</span>
+    <h1 class="auth-title">SecOps Platform</h1>
+    <p class="auth-sub">Gestion d'incidents de cybersécurité</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="flash flash-{{ 'error' if cat=='error' else 'success' }}" style="margin-bottom:1rem">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="field">
+        <label class="field-label">Identifiant</label>
+        <input type="text" name="username" class="field-input" placeholder="username"
+               value="{{ request.form.get('username','') }}" required autocomplete="username">
+      </div>
+      <div class="field" style="margin-bottom:1.5rem">
+        <label class="field-label">Mot de passe</label>
+        <input type="password" name="password" class="field-input" placeholder="••••••••"
+               required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:.6rem">
+        &#128274; Se connecter
+      </button>
+    </form>
+
+    <p style="text-align:center;margin-top:1.25rem;font-size:.78rem;color:var(--text-muted)">
+      Pas encore de compte ? <a href="{{ url_for('register') }}">Créer le premier compte admin</a>
+    </p>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

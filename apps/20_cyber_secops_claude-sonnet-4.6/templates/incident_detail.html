@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% block title %}{{ inc.ref }} — SecOps{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">
+      <span class="inc-ref" style="font-size:1rem">{{ inc.ref }}</span>
+      {{ inc.title }}
+    </h1>
+    <p class="page-sub">
+      <span class="sev-badge {{ inc.severity | sev_class }}">
+        <span class="sev-dot {{ inc.severity }}"></span>{{ inc.severity }}
+      </span>
+      <span class="st-badge {{ inc.status | status_class }}">{{ inc.status }}</span>
+      <span class="tc-muted fs-sm">{{ inc.category }}</span>
+      <span class="tc-muted fs-sm">&#8226; {{ inc.created_at | timeago }}</span>
+    </p>
+  </div>
+  <div style="display:flex;gap:.5rem">
+    <a href="{{ url_for('incident_edit', inc_id=inc.id) }}" class="btn btn-ghost">&#9998; Modifier</a>
+    <a href="{{ url_for('incidents') }}" class="btn btn-ghost">&#8592; Incidents</a>
+  </div>
+</div>
+
+<div class="detail-layout">
+
+  <!-- ── Left column: timeline + comments ── -->
+  <div class="detail-main">
+
+    <!-- Description -->
+    {% if inc.description %}
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Description</span></div>
+      <div class="card-body">
+        <p style="white-space:pre-wrap;color:var(--text)">{{ inc.description }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Technical fields -->
+    {% if inc.affected_systems or inc.ioc or inc.source %}
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Informations techniques</span></div>
+      <div class="card-body">
+        {% if inc.source %}
+        <div class="detail-field">
+          <span class="detail-field-label">Source de détection</span>
+          <span>{{ inc.source }}</span>
+        </div>
+        {% endif %}
+        {% if inc.affected_systems %}
+        <div class="detail-field">
+          <span class="detail-field-label">Systèmes affectés</span>
+          <pre class="code-block">{{ inc.affected_systems }}</pre>
+        </div>
+        {% endif %}
+        {% if inc.ioc %}
+        <div class="detail-field">
+          <span class="detail-field-label">Indicateurs de compromission (IOC)</span>
+          <pre class="code-block">{{ inc.ioc }}</pre>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Timeline -->
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">&#128336; Timeline d'attaque</span>
+        <span class="fs-sm tc-muted">{{ inc.timeline_events | length }} événement{% if inc.timeline_events | length != 1 %}s{% endif %}</span>
+      </div>
+      <div class="card-body">
+        {% if inc.timeline_events %}
+        <div class="timeline">
+          {% for ev in inc.timeline_events %}
+          <div class="tl-item">
+            <div class="tl-dot tl-{{ ev.event_type }}"></div>
+            <div class="tl-content">
+              <div class="tl-hd">
+                <span class="tl-title">{{ ev.title }}</span>
+                <span class="tl-type tl-type-{{ ev.event_type }}">{{ ev.event_type }}</span>
+              </div>
+              <div class="tl-meta">
+                <span class="mono fs-xs">{{ ev.event_time | dt }}</span>
+                <span class="tc-muted fs-xs">par {{ ev.author.full_name }}</span>
+              </div>
+              {% if ev.description %}
+              <p class="tl-desc">{{ ev.description }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="tc-muted fs-sm">Aucun événement dans la timeline.</p>
+        {% endif %}
+
+        <!-- Add timeline event -->
+        <details class="detail-form-toggle" style="margin-top:1.25rem">
+          <summary class="btn btn-ghost btn-sm">+ Ajouter un événement</summary>
+          <form method="POST" action="{{ url_for('timeline_add', inc_id=inc.id) }}" style="margin-top:1rem">
+            <div class="form-grid" style="gap:.75rem">
+              <div class="field">
+                <label class="field-label">Type d'événement</label>
+                <select name="event_type" class="field-select">
+                  {% for et in event_types %}
+                  <option value="{{ et }}">{{ et | capitalize }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label">Date/heure</label>
+                <input type="datetime-local" name="event_time" class="field-input">
+              </div>
+              <div class="field" style="grid-column:1/-1">
+                <label class="field-label">Titre *</label>
+                <input type="text" name="title" class="field-input" required placeholder="Description courte de l'événement">
+              </div>
+              <div class="field" style="grid-column:1/-1">
+                <label class="field-label">Détails</label>
+                <textarea name="description" class="field-textarea" rows="3" placeholder="Observations, actions effectuées, outils utilisés…"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:.5rem">Ajouter à la timeline</button>
+          </form>
+        </details>
+      </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">&#128172; Commentaires</span>
+        <span class="fs-sm tc-muted">{{ inc.comments | length }}</span>
+      </div>
+      <div class="card-body">
+        {% for c in inc.comments %}
+        <div class="comment {% if c.is_internal %}comment-internal{% endif %}">
+          <div class="comment-hd">
+            <span class="fw-700 fs-sm">{{ c.author.full_name }}</span>
+            {% if c.is_internal %}
+            <span class="badge-internal">&#128274; Interne</span>
+            {% endif %}
+            <span class="tc-muted fs-xs mono">{{ c.created_at | timeago }}</span>
+          </div>
+          <p class="comment-body">{{ c.content }}</p>
+        </div>
+        {% else %}
+        <p class="tc-muted fs-sm">Aucun commentaire.</p>
+        {% endfor %}
+
+        <!-- New comment -->
+        <form method="POST" action="{{ url_for('comment_add', inc_id=inc.id) }}" style="margin-top:1.25rem">
+          <div class="field">
+            <label class="field-label">Ajouter un commentaire</label>
+            <textarea name="content" class="field-textarea" rows="3" required placeholder="Votre analyse, observations, actions…"></textarea>
+          </div>
+          <div style="display:flex;align-items:center;gap:1rem;margin-top:.5rem">
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;cursor:pointer">
+              <input type="checkbox" name="is_internal">
+              <span>Commentaire interne (non visible hors SOC)</span>
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Right column: status + metadata ── -->
+  <div class="detail-aside">
+
+    <!-- Status change -->
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Changer le statut</span></div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('incident_status', inc_id=inc.id) }}">
+          <select name="status" class="field-select status-select" style="width:100%;margin-bottom:.75rem">
+            {% for s in statuses %}
+            <option value="{{ s }}" {% if inc.status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+          <div class="field">
+            <label class="field-label">Note (optionnel)</label>
+            <input type="text" name="note" class="field-input" placeholder="Raison du changement…">
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-top:.5rem">Mettre à jour</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Severity (manager/admin only) -->
+    {% if session.role in ('manager', 'admin') %}
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Sévérité</span></div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('incident_severity', inc_id=inc.id) }}">
+          <select name="severity" class="field-select" style="width:100%;margin-bottom:.5rem">
+            {% for s in SEVERITIES %}
+            <option value="{{ s }}" {% if inc.severity == s %}selected{% endif %}>{{ s | capitalize }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">Changer la sévérité</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Assignment (manager/admin only) -->
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Assignation</span></div>
+      <div class="card-body">
+        <p class="fs-sm" style="margin-bottom:.75rem">
+          {% if inc.assignee %}
+          Assigné à <strong>{{ inc.assignee.full_name }}</strong>
+          {% else %}
+          <span class="tc-muted">Non assigné</span>
+          {% endif %}
+        </p>
+        <form method="POST" action="{{ url_for('incident_assign', inc_id=inc.id) }}">
+          <select name="analyst_id" class="field-select" style="width:100%;margin-bottom:.5rem">
+            <option value="">Non assigné</option>
+            {% for a in analysts %}
+            <option value="{{ a.id }}" {% if inc.assigned_to == a.id %}selected{% endif %}>
+              {{ a.full_name }} ({{ a.role }})
+            </option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">Assigner</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Metadata -->
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Métadonnées</span></div>
+      <div class="card-body">
+        <div class="meta-row"><span class="meta-label">Référence</span><span class="inc-ref">{{ inc.ref }}</span></div>
+        <div class="meta-row"><span class="meta-label">Créé par</span><span>{{ inc.creator.full_name if inc.creator else '—' }}</span></div>
+        <div class="meta-row"><span class="meta-label">Créé le</span><span class="mono fs-sm">{{ inc.created_at | dt }}</span></div>
+        <div class="meta-row"><span class="meta-label">Mis à jour</span><span class="mono fs-sm">{{ inc.updated_at | dt }}</span></div>
+        {% if inc.resolved_at %}
+        <div class="meta-row"><span class="meta-label">Résolu le</span><span class="mono fs-sm">{{ inc.resolved_at | dt }}</span></div>
+        <div class="meta-row"><span class="meta-label">MTTR</span><span class="fw-700" style="color:var(--accent)">{{ inc.mttr_hours }}h</span></div>
+        {% endif %}
+        {% if inc.closed_at %}
+        <div class="meta-row"><span class="meta-label">Fermé le</span><span class="mono fs-sm">{{ inc.closed_at | dt }}</span></div>
+        {% endif %}
+        <div class="meta-row"><span class="meta-label">Âge</span>
+          <span class="mono fs-sm {% if inc.age_hours > 72 %}tc-crit{% elif inc.age_hours > 24 %}tc-high{% endif %}">{{ inc.age_hours }}h</span>
+        </div>
+        {% if inc.is_active %}
+        <div class="meta-row"><span class="meta-label">En cours</span><span style="color:var(--crit)">&#11044; Actif</span></div>
+        {% else %}
+        <div class="meta-row"><span class="meta-label">En cours</span><span style="color:var(--low)">&#10003; Fermé</span></div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

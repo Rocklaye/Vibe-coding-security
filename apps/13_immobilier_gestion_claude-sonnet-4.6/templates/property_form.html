@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}{% if prop %}Modifier{% else %}Nouveau{% endif %} bien — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">{% if prop %}Modifier le bien{% else %}Nouveau bien{% endif %}</h1>
+    <p class="page-sub">{% if prop %}{{ prop.title }}{% else %}Renseignez les informations du bien{% endif %}</p>
+  </div>
+  <a href="{{ url_for('owner_properties') }}" class="btn btn-ghost">&#8592; Retour</a>
+</div>
+
+<div class="card form-wrap">
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data">
+
+      <div class="form-section">
+        <div class="form-section-title">Informations générales</div>
+        <div class="form-grid">
+          <div class="field full">
+            <label class="field-label">Titre du bien *</label>
+            <input type="text" name="title" class="field-input" required
+                   value="{{ prop.title if prop else '' }}" placeholder="ex : Appartement T3 Lyon 6e">
+          </div>
+          <div class="field">
+            <label class="field-label">Type de bien *</label>
+            <select name="property_type" class="field-select" required>
+              {% for t in ['Appartement','Maison','Studio','Chambre','Loft','Commerce','Bureau','Garage'] %}
+              <option value="{{ t }}" {% if prop and prop.property_type == t %}selected{% endif %}>{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Nombre de pièces</label>
+            <input type="number" name="rooms" class="field-input" min="1" max="20"
+                   value="{{ prop.rooms if prop else 1 }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Surface (m²) *</label>
+            <input type="number" name="area_m2" class="field-input" step="0.5" min="1"
+                   value="{{ prop.area_m2 if prop else '' }}" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Adresse</div>
+        <div class="form-grid">
+          <div class="field full">
+            <label class="field-label">Adresse *</label>
+            <input type="text" name="address" class="field-input" required
+                   value="{{ prop.address if prop else '' }}" placeholder="12 rue de la Paix">
+          </div>
+          <div class="field">
+            <label class="field-label">Code postal *</label>
+            <input type="text" name="postal_code" class="field-input" required maxlength="10"
+                   value="{{ prop.postal_code if prop else '' }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Ville *</label>
+            <input type="text" name="city" class="field-input" required
+                   value="{{ prop.city if prop else '' }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Loyer et finances</div>
+        <div class="form-grid form-grid-3">
+          <div class="field">
+            <label class="field-label">Loyer hors charges (€) *</label>
+            <input type="number" name="rent_amount" class="field-input" step="0.01" min="0" required
+                   value="{{ prop.rent_amount if prop else '' }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Charges (€)</label>
+            <input type="number" name="charges" class="field-input" step="0.01" min="0"
+                   value="{{ prop.charges if prop else 0 }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Dépôt de garantie (€)</label>
+            <input type="number" name="deposit" class="field-input" step="0.01" min="0"
+                   value="{{ prop.deposit if prop else 0 }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Description</div>
+        <div class="field">
+          <textarea name="description" class="field-textarea" rows="4"
+                    placeholder="Description du bien, équipements, état général…">{{ prop.description if prop else '' }}</textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Photos</div>
+        {% if prop and prop.photos %}
+        <div class="photo-gallery" style="margin-bottom:1rem">
+          {% for ph in prop.photos %}
+          <div style="position:relative;display:inline-block">
+            <img src="{{ url_for('uploaded_file', filename=ph.filename) }}" class="photo-thumb" alt="">
+            <form method="POST" action="{{ url_for('property_photo_delete', prop_id=prop.id, photo_id=ph.id) }}"
+                  style="position:absolute;top:2px;right:2px" data-confirm="Supprimer cette photo ?">
+              <button type="submit" class="btn btn-danger btn-sm" style="padding:.2rem .4rem;font-size:.7rem">✕</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <label class="upload-zone">
+          <input type="file" name="photos" accept="image/*" multiple data-preview="photo-prev">
+          <div>&#128247; Cliquez pour ajouter des photos (JPG, PNG…)</div>
+          <div class="fs-sm" style="margin-top:.3rem;color:var(--text-light)">Plusieurs fichiers acceptés</div>
+        </label>
+        <div id="photo-prev" class="preview-row"></div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('owner_properties') }}" class="btn btn-ghost">Annuler</a>
+        {% if prop %}
+        <form method="POST" action="{{ url_for('property_delete', prop_id=prop.id) }}"
+              data-confirm="Supprimer définitivement ce bien et toutes ses données ?">
+          <button type="submit" class="btn btn-danger">Supprimer le bien</button>
+        </form>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">{% if prop %}Enregistrer{% else %}Créer le bien{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

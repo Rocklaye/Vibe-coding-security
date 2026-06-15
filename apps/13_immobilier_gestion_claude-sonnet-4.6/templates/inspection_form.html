@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Nouvel état des lieux — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <h1 class="page-title">Nouvel état des lieux</h1>
+  <a href="{{ url_for('owner_inspections') }}" class="btn btn-ghost">&#8592; Retour</a>
+</div>
+
+<div class="card form-wrap">
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data">
+
+      <div class="form-section">
+        <div class="form-section-title">Informations générales</div>
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Bail / Logement *</label>
+            <select name="lease_id" class="field-select" required>
+              <option value="">— Choisir un bail actif —</option>
+              {% for l in leases %}
+              <option value="{{ l.id }}">{{ l.property.title }} — {{ l.tenant.full_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Type d'état des lieux *</label>
+            <select name="inspection_type" class="field-select" required>
+              <option value="entree">Entrée dans les lieux</option>
+              <option value="sortie">Sortie des lieux</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Date *</label>
+            <input type="date" name="date" class="field-input" required value="{{ today.isoformat() }}">
+          </div>
+          <div class="field">
+            <label class="field-label">État général du logement</label>
+            <select name="general_condition" class="field-select">
+              <option value="bon">Bon état</option>
+              <option value="moyen">État moyen</option>
+              <option value="mauvais">Mauvais état</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Observations</div>
+        <div class="field">
+          <label class="field-label">Notes et remarques</label>
+          <textarea name="notes" class="field-textarea" rows="5"
+                    placeholder="Décrivez l'état de chaque pièce, les équipements, les éventuels dégâts ou observations importantes…"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Photos</div>
+        <label class="upload-zone">
+          <input type="file" name="photos" accept="image/*" multiple data-preview="insp-prev">
+          <div>&#128247; Ajouter des photos de l'état des lieux</div>
+          <div class="fs-sm" style="margin-top:.3rem;color:var(--text-light)">
+            Plusieurs fichiers acceptés — salon, chambres, cuisine, salle de bain, etc.
+          </div>
+        </label>
+        <div id="insp-prev" class="preview-row"></div>
+
+        <div style="margin-top:.75rem">
+          <label class="field-label" style="margin-bottom:.4rem;display:block">Légendes des photos (optionnel)</label>
+          <div id="caption-fields"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('owner_inspections') }}" class="btn btn-ghost">Annuler</a>
+        <button type="submit" class="btn btn-primary">Enregistrer l'état des lieux</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector('input[name="photos"]').addEventListener('change', function() {
+  const container = document.getElementById('caption-fields');
+  container.innerHTML = '';
+  Array.from(this.files).forEach((f, i) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem';
+    d.innerHTML = `<span style="font-size:.78rem;color:var(--text-muted);flex:0 0 120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      <input type="text" name="captions" class="field-input" placeholder="Légende (ex: Salon, entrée...)" style="flex:1">`;
+    container.appendChild(d);
+  });
+});
+</script>
+{% endblock %}

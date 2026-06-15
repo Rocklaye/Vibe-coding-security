@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}{% if inc %}Modifier {{ inc.ref }}{% else %}Nouvel incident{% endif %} — SecOps{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">{% if inc %}&#9998; Modifier {{ inc.ref }}{% else %}+ Nouvel incident{% endif %}</h1>
+    {% if inc %}
+    <p class="page-sub">
+      <span class="sev-badge {{ inc.severity | sev_class }}">{{ inc.severity }}</span>
+      <span class="st-badge {{ inc.status | status_class }}">{{ inc.status }}</span>
+    </p>
+    {% endif %}
+  </div>
+  {% if inc %}
+  <a href="{{ url_for('incident_detail', inc_id=inc.id) }}" class="btn btn-ghost">&#8592; Retour à l'incident</a>
+  {% else %}
+  <a href="{{ url_for('incidents') }}" class="btn btn-ghost">&#8592; Incidents</a>
+  {% endif %}
+</div>
+
+<form method="POST" class="card">
+  <div class="card-hd"><span class="card-title">Informations générales</span></div>
+  <div class="card-body">
+    <div class="form-grid">
+      <div class="field" style="grid-column:1/-1">
+        <label class="field-label">Titre *</label>
+        <input type="text" name="title" class="field-input" required
+               placeholder="Description courte de l'incident"
+               value="{{ inc.title if inc else request.form.get('title','') }}">
+      </div>
+
+      <div class="field">
+        <label class="field-label">Sévérité *</label>
+        <select name="severity" class="field-select">
+          {% for s in severities %}
+          <option value="{{ s }}"
+            {% if (inc and inc.severity == s) or (not inc and request.form.get('severity') == s) or (not inc and not request.form.get('severity') and s == 'medium') %}selected{% endif %}>
+            {{ s | capitalize }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Catégorie *</label>
+        <select name="category" class="field-select">
+          {% for c in categories %}
+          <option value="{{ c }}"
+            {% if (inc and inc.category == c) or (not inc and request.form.get('category') == c) %}selected{% endif %}>
+            {{ c }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field" style="grid-column:1/-1">
+        <label class="field-label">Description</label>
+        <textarea name="description" class="field-textarea" rows="5"
+                  placeholder="Décrivez l'incident, le contexte, les observations initiales…">{{ inc.description if inc else request.form.get('description','') }}</textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Source de détection</label>
+        <input type="text" name="source" class="field-input"
+               placeholder="SIEM, EDR, signalement utilisateur…"
+               value="{{ inc.source if inc else request.form.get('source','') }}">
+      </div>
+
+      {% if not inc %}
+      <div class="field">
+        <label class="field-label">Assigné à</label>
+        <select name="assigned_to" class="field-select">
+          <option value="">Non assigné</option>
+          {% for a in analysts %}
+          <option value="{{ a.id }}"
+            {% if request.form.get('assigned_to') == a.id | string %}selected{% endif %}>
+            {{ a.full_name }} ({{ a.role }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card-hd" style="margin-top:1rem"><span class="card-title">Informations techniques</span></div>
+  <div class="card-body">
+    <div class="form-grid">
+      <div class="field" style="grid-column:1/-1">
+        <label class="field-label">Systèmes affectés</label>
+        <textarea name="affected_systems" class="field-textarea" rows="3"
+                  placeholder="Adresses IP, noms de machines, services…">{{ inc.affected_systems if inc else request.form.get('affected_systems','') }}</textarea>
+      </div>
+
+      <div class="field" style="grid-column:1/-1">
+        <label class="field-label">Indicateurs de compromission (IOC)</label>
+        <textarea name="ioc" class="field-textarea" rows="4"
+                  placeholder="Hashes, IPs malveillantes, domaines, URLs, clés de registre…">{{ inc.ioc if inc else request.form.get('ioc','') }}</textarea>
+        <span class="field-hint">Un IOC par ligne recommandé</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <button type="submit" class="btn btn-primary">
+      {% if inc %}Enregistrer les modifications{% else %}Créer l'incident{% endif %}
+    </button>
+    {% if inc %}
+    <a href="{{ url_for('incident_detail', inc_id=inc.id) }}" class="btn btn-ghost">Annuler</a>
+    {% else %}
+    <a href="{{ url_for('incidents') }}" class="btn btn-ghost">Annuler</a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}

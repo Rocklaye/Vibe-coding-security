@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Fil d'actualité — Microblog{% endblock %}
+
+{% block content %}
+<div class="feed-layout">
+
+  <!-- ── Colonne principale ── -->
+  <main class="feed-main">
+
+    {% if session.user_id %}
+    <div class="card compose-card">
+      <div class="compose-top">
+        <span class="avatar">{{ session.username[0].upper() }}</span>
+        <form action="{{ url_for('create_post') }}" method="POST" class="compose-form" id="compose-form">
+          <textarea
+            name="content"
+            class="compose-area"
+            placeholder="Quoi de neuf ? (280 caractères max)"
+            maxlength="280"
+            rows="3"
+            id="compose-textarea"
+            required
+          ></textarea>
+          <div class="compose-bar">
+            <span class="char-counter" id="compose-counter"><span class="count">280</span> restants</span>
+            <button type="submit" class="btn btn-primary btn-sm">Publier</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="card welcome-card">
+      <h2 class="welcome-title">&#9729; Bienvenue sur Microblog</h2>
+      <p class="welcome-text">Rejoignez la conversation. Partagez vos idées en 280 caractères.</p>
+      <div class="welcome-actions">
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Créer un compte</a>
+        <a href="{{ url_for('login') }}" class="btn btn-ghost">Se connecter</a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Posts ── -->
+    {% if posts %}
+      {% for post in posts %}
+      <article class="card post-card">
+        <div class="post-head">
+          <a href="{{ url_for('profile', username=post.author.username) }}" class="author-link">
+            <span class="avatar">{{ post.author.username[0].upper() }}</span>
+            <div>
+              <span class="author-name">{{ post.author.username }}</span>
+              <span class="post-time">{{ post.created_at | timeago }}</span>
+            </div>
+          </a>
+          {% if session.user_id == post.user_id %}
+          <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST"
+                onsubmit="return confirm('Supprimer ce post ?')">
+            <input type="hidden" name="referer" value="index">
+            <button type="submit" class="btn-icon-del" title="Supprimer">&#128465;</button>
+          </form>
+          {% endif %}
+        </div>
+        <p class="post-body">{{ post.content }}</p>
+        <div class="post-foot">
+          <a href="{{ url_for('view_post', post_id=post.id) }}" class="comment-count-link">
+            &#128172;
+            {% set n = post.comments | length %}
+            {{ n }} {% if n == 1 %}commentaire{% else %}commentaires{% endif %}
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <p class="empty-icon">&#128203;</p>
+        <p>Aucun post pour l'instant. Soyez le premier !</p>
+      </div>
+    {% endif %}
+
+  </main>
+
+  <!-- ── Sidebar ── -->
+  <aside class="feed-sidebar">
+    <div class="card sidebar-card">
+      <h3 class="sidebar-title">&#127760; Fil public</h3>
+      <p class="sidebar-body">Tout le monde peut lire les posts. Inscrivez-vous pour publier et commenter.</p>
+    </div>
+    <div class="card sidebar-card">
+      <h3 class="sidebar-title">&#128221; Règles</h3>
+      <ul class="sidebar-rules">
+        <li>280 caractères max par post</li>
+        <li>Restez respectueux</li>
+        <li>Pas de spam</li>
+      </ul>
+    </div>
+  </aside>
+
+</div>
+{% endblock %}

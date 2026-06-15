@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Post de {{ post.author.username }} — Microblog{% endblock %}
+
+{% block content %}
+<div class="narrow-layout">
+
+  <a href="{{ url_for('index') }}" class="back-link">&#8592; Retour au fil</a>
+
+  <!-- ── Post principal ── -->
+  <article class="card post-card post-detail">
+    <div class="post-head">
+      <a href="{{ url_for('profile', username=post.author.username) }}" class="author-link">
+        <span class="avatar">{{ post.author.username[0].upper() }}</span>
+        <div>
+          <span class="author-name">{{ post.author.username }}</span>
+          <span class="post-time">{{ post.created_at | timeago }}</span>
+        </div>
+      </a>
+      {% if session.user_id == post.user_id %}
+      <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST"
+            onsubmit="return confirm('Supprimer ce post ?')">
+        <input type="hidden" name="referer" value="index">
+        <button type="submit" class="btn-icon-del" title="Supprimer">&#128465;</button>
+      </form>
+      {% endif %}
+    </div>
+    <p class="post-body post-body-lg">{{ post.content }}</p>
+    <div class="post-meta">
+      <span>{{ post.created_at.strftime('%d/%m/%Y à %H:%M') }}</span>
+      <span class="sep">&bull;</span>
+      {% set n = post.comments | length %}
+      <span>{{ n }} {% if n == 1 %}commentaire{% else %}commentaires{% endif %}</span>
+    </div>
+  </article>
+
+  <!-- ── Commentaires ── -->
+  <section class="comments-section">
+    <h2 class="section-title">Commentaires</h2>
+
+    {% if session.user_id %}
+    <div class="card compose-card compose-card-sm">
+      <form action="{{ url_for('add_comment', post_id=post.id) }}" method="POST">
+        <div class="compose-top">
+          <span class="avatar avatar-sm">{{ session.username[0].upper() }}</span>
+          <div class="compose-form" style="flex:1">
+            <textarea
+              name="content"
+              class="compose-area"
+              placeholder="Votre commentaire…"
+              maxlength="280"
+              rows="2"
+              id="comment-textarea"
+              required
+            ></textarea>
+            <div class="compose-bar">
+              <span class="char-counter" id="comment-counter"><span class="count">280</span> restants</span>
+              <button type="submit" class="btn btn-primary btn-sm">Commenter</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% else %}
+    <div class="card login-nudge">
+      <a href="{{ url_for('login') }}" class="link">Connectez-vous</a> pour laisser un commentaire.
+    </div>
+    {% endif %}
+
+    {% if post.comments %}
+      {% for comment in post.comments %}
+      <div class="card comment-card">
+        <div class="post-head">
+          <a href="{{ url_for('profile', username=comment.author.username) }}" class="author-link">
+            <span class="avatar avatar-sm">{{ comment.author.username[0].upper() }}</span>
+            <div>
+              <span class="author-name">{{ comment.author.username }}</span>
+              <span class="post-time">{{ comment.created_at | timeago }}</span>
+            </div>
+          </a>
+          {% if session.user_id == comment.user_id %}
+          <form action="{{ url_for('delete_comment', comment_id=comment.id) }}" method="POST"
+                onsubmit="return confirm('Supprimer ce commentaire ?')">
+            <button type="submit" class="btn-icon-del btn-icon-del-sm" title="Supprimer">&#128465;</button>
+          </form>
+          {% endif %}
+        </div>
+        <p class="comment-body">{{ comment.content }}</p>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state empty-sm">
+        <p>Aucun commentaire. Soyez le premier !</p>
+      </div>
+    {% endif %}
+
+  </section>
+</div>
+{% endblock %}

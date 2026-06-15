@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}GestImmo{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app-wrap">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <span class="sb-brand-name">&#127968; GestImmo</span>
+      <span class="sb-brand-role">
+        {% if session.role == 'owner' %}Espace Propriétaire{% else %}Espace Locataire{% endif %}
+      </span>
+    </div>
+
+    <nav class="sb-nav">
+      {% if session.role == 'owner' %}
+        <span class="sb-section-lbl">Gestion</span>
+        <a href="{{ url_for('owner_dashboard') }}"  class="sb-link {% if request.endpoint == 'owner_dashboard'  %}active{% endif %}">
+          <span class="sb-icon">&#128200;</span> Tableau de bord
+        </a>
+        <a href="{{ url_for('owner_properties') }}" class="sb-link {% if 'propert' in (request.endpoint or '') %}active{% endif %}">
+          <span class="sb-icon">&#127968;</span> Mes biens
+        </a>
+        <a href="{{ url_for('owner_tenants') }}"    class="sb-link {% if request.endpoint in ('owner_tenants','tenant_detail','tenant_new') %}active{% endif %}">
+          <span class="sb-icon">&#128100;</span> Locataires
+        </a>
+        <a href="{{ url_for('owner_leases') }}"     class="sb-link {% if 'lease' in (request.endpoint or '') %}active{% endif %}">
+          <span class="sb-icon">&#128196;</span> Baux
+        </a>
+
+        <span class="sb-section-lbl" style="margin-top:.5rem">Finances</span>
+        <a href="{{ url_for('owner_payments') }}"   class="sb-link {% if 'payment' in (request.endpoint or '') %}active{% endif %}">
+          <span class="sb-icon">&#128176;</span> Paiements
+        </a>
+
+        <span class="sb-section-lbl" style="margin-top:.5rem">Suivi</span>
+        <a href="{{ url_for('owner_inspections') }}" class="sb-link {% if 'inspection' in (request.endpoint or '') %}active{% endif %}">
+          <span class="sb-icon">&#128269;</span> États des lieux
+        </a>
+      {% else %}
+        <span class="sb-section-lbl">Mon espace</span>
+        <a href="{{ url_for('tenant_dashboard') }}"  class="sb-link {% if request.endpoint == 'tenant_dashboard'  %}active{% endif %}">
+          <span class="sb-icon">&#127968;</span> Mon logement
+        </a>
+        <a href="{{ url_for('tenant_payments') }}"   class="sb-link {% if request.endpoint == 'tenant_payments'   %}active{% endif %}">
+          <span class="sb-icon">&#128176;</span> Mes paiements
+        </a>
+        <a href="{{ url_for('tenant_documents') }}"  class="sb-link {% if request.endpoint == 'tenant_documents'  %}active{% endif %}">
+          <span class="sb-icon">&#128196;</span> Mes documents
+        </a>
+      {% endif %}
+    </nav>
+
+    <div class="sb-footer">
+      <span class="sb-user-name">&#128100; {{ session.full_name }}</span>
+      <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm"
+         style="color:rgba(255,255,255,.65);border-color:rgba(255,255,255,.2);width:100%;justify-content:center">
+        Déconnexion
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── Main content ── -->
+  <div class="main-wrap">
+    <div class="page-body">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-box">
+            {% for cat, msg in messages %}
+              <div class="flash flash-{{ 'success' if cat=='success' else 'error' if cat=='error' else 'info' if cat=='info' else 'warning' }}">
+                <span>{{ msg }}</span>
+                <button class="flash-close" onclick="this.parentElement.remove()">&#10005;</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

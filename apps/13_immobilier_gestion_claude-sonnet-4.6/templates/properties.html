@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Mes biens — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">Mes biens immobiliers</h1>
+    <p class="page-sub">{{ props | length }} bien{% if props|length != 1 %}s{% endif %} enregistré{% if props|length != 1 %}s{% endif %}</p>
+  </div>
+  <a href="{{ url_for('property_new') }}" class="btn btn-primary">+ Ajouter un bien</a>
+</div>
+
+{% if props %}
+<div class="prop-grid">
+  {% for p in props %}
+  <a href="{{ url_for('property_detail', prop_id=p.id) }}" class="prop-card">
+    <div class="prop-card-img">
+      {% if p.cover_photo %}
+        <img src="{{ url_for('uploaded_file', filename=p.cover_photo.filename) }}" alt="{{ p.title }}">
+      {% else %}
+        <span class="prop-card-img-ph">&#127968;</span>
+      {% endif %}
+    </div>
+    <div class="prop-card-body">
+      <div class="prop-card-title">{{ p.title }}</div>
+      <div class="prop-card-addr">{{ p.address }}, {{ p.postal_code }} {{ p.city }}</div>
+      <div class="prop-card-price">{{ p.total_rent | eur }}<span style="font-size:.75rem;font-weight:400;color:var(--text-muted)">/mois CC</span></div>
+      <div class="prop-card-foot">
+        <span class="fs-sm text-muted">{{ p.property_type }} · {{ p.area_m2 }} m² · {{ p.rooms }} pièce{% if p.rooms != 1 %}s{% endif %}</span>
+        {% if p.active_lease %}
+          <span class="badge badge-success">Loué</span>
+        {% else %}
+          <span class="badge badge-warning">Vacant</span>
+        {% endif %}
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:3rem">
+  <p style="font-size:3rem">&#127968;</p>
+  <p style="color:var(--text-muted);margin:.75rem 0 1.25rem">Vous n'avez pas encore enregistré de bien immobilier.</p>
+  <a href="{{ url_for('property_new') }}" class="btn btn-primary btn-lg">Ajouter mon premier bien</a>
+</div>
+{% endif %}
+{% endblock %}

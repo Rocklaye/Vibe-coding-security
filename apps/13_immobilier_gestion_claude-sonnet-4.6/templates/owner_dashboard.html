@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">Bonjour, {{ session.full_name.split()[0] }} &#128075;</h1>
+    <p class="page-sub">{{ today.strftime('%A %d %B %Y') }}</p>
+  </div>
+  <a href="{{ url_for('property_new') }}" class="btn btn-primary">+ Nouveau bien</a>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-val">{{ props | length }}</div>
+    <div class="stat-label">Biens immobiliers</div>
+  </div>
+  <div class="stat-card a">
+    <div class="stat-val">{{ active_leases | length }}</div>
+    <div class="stat-label">Baux actifs</div>
+  </div>
+  <div class="stat-card s">
+    <div class="stat-val">{{ monthly | eur }}</div>
+    <div class="stat-label">Revenus / mois</div>
+  </div>
+  <div class="stat-card {% if overdue %}d{% endif %}">
+    <div class="stat-val">{{ overdue | length }}</div>
+    <div class="stat-label">Loyers en retard</div>
+  </div>
+</div>
+
+<!-- Alerts -->
+{% if overdue %}
+<div class="alert alert-danger" style="margin-bottom:1.25rem">
+  <span>&#9888;</span>
+  <div>
+    <strong>{{ overdue | length }} loyer{% if overdue|length > 1 %}s{% endif %} en retard</strong><br>
+    {% for l in overdue %}
+      <span>{{ l.property.title }} — {{ l.tenant.full_name }} ({{ l.total_rent | eur }})</span>
+      <a href="{{ url_for('payment_new') }}?lease_id={{ l.id }}" class="btn btn-accent btn-sm" style="margin-left:.5rem">Encaisser</a>
+      {% if not loop.last %}<br>{% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Two columns -->
+<div class="grid-2">
+  <!-- Recent payments -->
+  <div class="card">
+    <div class="card-hd">
+      <span class="card-title">&#128176; Derniers paiements</span>
+      <a href="{{ url_for('owner_payments') }}" class="btn btn-ghost btn-sm">Tout voir</a>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Bien</th><th>Locataire</th><th>Montant</th></tr>
+        </thead>
+        <tbody>
+          {% for p in recent %}
+          <tr>
+            <td class="fs-sm">{{ p.payment_date | dfr }}</td>
+            <td class="fw-bold">{{ p.lease.property.title }}</td>
+            <td>{{ p.lease.tenant.full_name }}</td>
+            <td class="fw-bold text-success">{{ p.amount | eur }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="tbl-empty">Aucun paiement enregistré</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Biens -->
+  <div class="card">
+    <div class="card-hd">
+      <span class="card-title">&#127968; Mes biens</span>
+      <a href="{{ url_for('owner_properties') }}" class="btn btn-ghost btn-sm">Voir tout</a>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Bien</th><th>Loyer CC</th><th>Statut</th></tr>
+        </thead>
+        <tbody>
+          {% for p in props %}
+          <tr>
+            <td>
+              <a href="{{ url_for('property_detail', prop_id=p.id) }}" class="fw-bold">{{ p.title }}</a>
+              <div class="fs-sm text-muted">{{ p.city }}</div>
+            </td>
+            <td class="fw-bold">{{ p.total_rent | eur }}</td>
+            <td>
+              {% if p.active_lease %}
+                <span class="badge badge-success">Loué</span>
+              {% else %}
+                <span class="badge badge-warning">Vacant</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="tbl-empty">Aucun bien</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

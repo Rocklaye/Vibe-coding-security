@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Locataires — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">Locataires</h1>
+    <p class="page-sub">{{ tenants | length }} locataire{% if tenants|length != 1 %}s{% endif %} lié{% if tenants|length != 1 %}s{% endif %} à vos biens</p>
+  </div>
+  <a href="{{ url_for('tenant_new') }}" class="btn btn-primary">+ Nouveau locataire</a>
+</div>
+
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Bail actif</th><th>Bien loué</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for t in tenants %}
+        <tr>
+          <td class="fw-bold">{{ t.full_name }}</td>
+          <td class="text-muted">{{ t.email }}</td>
+          <td>{{ t.phone or '—' }}</td>
+          <td>
+            {% set al = t.leases_as_tenant | selectattr('status', 'eq', 'active') | list %}
+            {% if al %}
+              <span class="badge badge-success">Actif</span>
+            {% else %}
+              <span class="badge badge-muted">Aucun</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if al %}
+              <a href="{{ url_for('property_detail', prop_id=al[0].property.id) }}">{{ al[0].property.title }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('tenant_detail', tenant_id=t.id) }}" class="btn btn-ghost btn-sm">Voir</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="tbl-empty">Aucun locataire. Créez d'abord un bail pour lier un locataire.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

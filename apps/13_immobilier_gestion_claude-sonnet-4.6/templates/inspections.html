@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}États des lieux — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">États des lieux</h1>
+    <p class="page-sub">{{ inspections | length }} état{% if inspections|length != 1 %}s{% endif %} des lieux enregistré{% if inspections|length != 1 %}s{% endif %}</p>
+  </div>
+  <a href="{{ url_for('inspection_new') }}" class="btn btn-primary">+ Nouvel état des lieux</a>
+</div>
+
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Type</th><th>Bien</th><th>Locataire</th><th>État général</th><th>Photos</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for i in inspections %}
+        <tr>
+          <td>{{ i.date | dfr }}</td>
+          <td>
+            {% if i.inspection_type == 'entree' %}
+              <span class="badge badge-success">Entrée</span>
+            {% else %}
+              <span class="badge badge-warning">Sortie</span>
+            {% endif %}
+          </td>
+          <td class="fw-bold">{{ i.lease.property.title }}</td>
+          <td>{{ i.lease.tenant.full_name }}</td>
+          <td>
+            {% if i.general_condition == 'bon' %}
+              <span class="badge badge-success">Bon</span>
+            {% elif i.general_condition == 'moyen' %}
+              <span class="badge badge-warning">Moyen</span>
+            {% else %}
+              <span class="badge badge-danger">Mauvais</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ i.photos | length }}</td>
+          <td>
+            <a href="{{ url_for('inspection_detail', insp_id=i.id) }}" class="btn btn-ghost btn-sm">Voir</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="tbl-empty">Aucun état des lieux enregistré.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

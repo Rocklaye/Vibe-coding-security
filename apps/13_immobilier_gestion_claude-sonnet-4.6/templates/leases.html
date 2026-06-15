@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Baux — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">Baux locatifs</h1>
+    <p class="page-sub">{{ leases | length }} bail{% if leases|length != 1 %}s{% endif %} au total</p>
+  </div>
+  <a href="{{ url_for('lease_new') }}" class="btn btn-primary">+ Nouveau bail</a>
+</div>
+
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Bien</th><th>Locataire</th><th>Type</th><th>Début</th><th>Fin</th><th>Loyer CC</th><th>Dépôt</th><th>Statut</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for l in leases %}
+        <tr>
+          <td>
+            <a href="{{ url_for('property_detail', prop_id=l.property.id) }}" class="fw-bold">{{ l.property.title }}</a>
+            <div class="fs-sm text-muted">{{ l.property.city }}</div>
+          </td>
+          <td>
+            <a href="{{ url_for('tenant_detail', tenant_id=l.tenant.id) }}">{{ l.tenant.full_name }}</a>
+          </td>
+          <td><span class="badge badge-info">{{ l.lease_type }}</span></td>
+          <td>{{ l.start_date.strftime('%d/%m/%Y') }}</td>
+          <td>{{ l.end_date.strftime('%d/%m/%Y') if l.end_date else '—' }}</td>
+          <td class="fw-bold">{{ l.total_rent | eur }}</td>
+          <td>{{ l.deposit | eur }}</td>
+          <td>
+            {% if l.status == 'active' %}
+              <span class="badge badge-success">Actif</span>
+            {% else %}
+              <span class="badge badge-muted">Résilié</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if l.status == 'active' %}
+            <form method="POST" action="{{ url_for('lease_terminate', lease_id=l.id) }}"
+                  data-confirm="Résilier le bail de {{ l.tenant.full_name }} ?">
+              <button type="submit" class="btn btn-danger btn-sm">Résilier</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="tbl-empty">Aucun bail créé.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

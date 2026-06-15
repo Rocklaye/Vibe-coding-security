@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SecOps Platform{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app-wrap">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <span class="sb-brand-icon">&#128737;</span>
+      <div>
+        <span class="sb-brand-text">SecOps</span>
+        <span class="sb-brand-sub">Incident Platform</span>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <span class="sb-section">Navigation</span>
+
+      <a href="{{ url_for('dashboard') }}" class="sb-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        &#128200; Tableau de bord
+      </a>
+      <a href="{{ url_for('incidents') }}" class="sb-link {% if 'incident' in (request.endpoint or '') and request.endpoint != 'dashboard' %}active{% endif %}">
+        &#128680; Incidents
+        {# live badge #}
+      </a>
+      <a href="{{ url_for('analysts') }}" class="sb-link {% if request.endpoint == 'analysts' %}active{% endif %}">
+        &#128100; Analystes
+      </a>
+
+      {% if session.role in ('manager', 'admin') %}
+      <span class="sb-section" style="margin-top:.5rem">Management</span>
+      <a href="{{ url_for('audit_log') }}" class="sb-link {% if request.endpoint == 'audit_log' %}active{% endif %}">
+        &#128203; Journal d'audit
+      </a>
+      {% endif %}
+
+      {% if session.role == 'admin' %}
+      <span class="sb-section" style="margin-top:.5rem">Administration</span>
+      <a href="{{ url_for('admin_users') }}" class="sb-link {% if request.endpoint == 'admin_users' %}active{% endif %}">
+        &#9881; Utilisateurs
+      </a>
+      {% endif %}
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-user">
+        <span>&#128100; {{ session.full_name }}</span>
+        <span class="sb-role-badge sb-role-{{ session.role }}">{{ session.role }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">
+        &#128682; Déconnexion
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main-wrap">
+    <div class="page-body">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-box">
+            {% for cat, msg in messages %}
+              <div class="flash flash-{{ 'success' if cat=='success' else 'error' if cat=='error' else 'warning' if cat=='warning' else 'info' }}">
+                <span>{{ msg }}</span>
+                <button class="flash-close" onclick="this.parentElement.remove()">&#10005;</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

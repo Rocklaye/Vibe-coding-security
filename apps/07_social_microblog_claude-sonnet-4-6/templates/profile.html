@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.username }} — Microblog{% endblock %}
+
+{% block content %}
+<div class="narrow-layout">
+
+  <!-- ── En-tête profil ── -->
+  <div class="card profile-head-card">
+    <div class="profile-head-inner">
+      <span class="avatar avatar-xl">{{ user.username[0].upper() }}</span>
+      <div class="profile-info">
+        <h1 class="profile-name">{{ user.username }}</h1>
+        {% if user.bio %}
+          <p class="profile-bio">{{ user.bio }}</p>
+        {% else %}
+          <p class="profile-bio profile-bio-empty">Aucune bio renseignée.</p>
+        {% endif %}
+        <p class="profile-meta">
+          Membre depuis {{ user.created_at.strftime('%B %Y') }}
+          &bull; <strong>{{ posts | length }}</strong> post{% if posts | length != 1 %}s{% endif %}
+        </p>
+      </div>
+    </div>
+    {% if session.user_id == user.id %}
+    <a href="{{ url_for('edit_profile') }}" class="btn btn-ghost btn-sm profile-edit-btn">&#9998;&nbsp;Modifier</a>
+    {% endif %}
+  </div>
+
+  <!-- ── Posts de l'utilisateur ── -->
+  {% if posts %}
+    {% for post in posts %}
+    <article class="card post-card">
+      <div class="post-head">
+        <div class="author-link">
+          <span class="avatar">{{ user.username[0].upper() }}</span>
+          <div>
+            <span class="author-name">{{ user.username }}</span>
+            <span class="post-time">{{ post.created_at | timeago }}</span>
+          </div>
+        </div>
+        {% if session.user_id == post.user_id %}
+        <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST"
+              onsubmit="return confirm('Supprimer ce post ?')">
+          <input type="hidden" name="referer" value="profile">
+          <button type="submit" class="btn-icon-del" title="Supprimer">&#128465;</button>
+        </form>
+        {% endif %}
+      </div>
+      <p class="post-body">{{ post.content }}</p>
+      <div class="post-foot">
+        <a href="{{ url_for('view_post', post_id=post.id) }}" class="comment-count-link">
+          &#128172;
+          {% set n = post.comments | length %}
+          {{ n }} {% if n == 1 %}commentaire{% else %}commentaires{% endif %}
+        </a>
+      </div>
+    </article>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <p class="empty-icon">&#128203;</p>
+      <p>{{ user.username }} n'a pas encore publié.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

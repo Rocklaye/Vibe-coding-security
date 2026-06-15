@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Nouveau bail — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <h1 class="page-title">Créer un bail</h1>
+  <a href="{{ url_for('owner_leases') }}" class="btn btn-ghost">&#8592; Retour</a>
+</div>
+
+<div class="card form-wrap">
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-section">
+        <div class="form-section-title">Parties</div>
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Bien immobilier *</label>
+            <select name="property_id" class="field-select" required>
+              <option value="">— Choisir un bien —</option>
+              {% for p in props %}
+              <option value="{{ p.id }}">{{ p.title }} ({{ p.city }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Locataire *</label>
+            <select name="tenant_id" class="field-select" required>
+              <option value="">— Choisir un locataire —</option>
+              {% for t in tenants %}
+              <option value="{{ t.id }}">{{ t.full_name }}</option>
+              {% endfor %}
+            </select>
+            <span class="field-hint">
+              Locataire absent ? <a href="{{ url_for('tenant_new') }}">En créer un</a>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Durée</div>
+        <div class="form-grid form-grid-3">
+          <div class="field">
+            <label class="field-label">Date de début *</label>
+            <input type="date" name="start_date" class="field-input" required
+                   value="{{ request.form.get('start_date', '') }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Date de fin</label>
+            <input type="date" name="end_date" class="field-input"
+                   value="{{ request.form.get('end_date', '') }}">
+            <span class="field-hint">Laisser vide pour bail à durée indéterminée</span>
+          </div>
+          <div class="field">
+            <label class="field-label">Type de bail</label>
+            <select name="lease_type" class="field-select">
+              <option value="vide">Vide</option>
+              <option value="meublé">Meublé</option>
+              <option value="commercial">Commercial</option>
+              <option value="saisonnier">Saisonnier</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Finances</div>
+        <div class="form-grid form-grid-3">
+          <div class="field">
+            <label class="field-label">Loyer hors charges (€) *</label>
+            <input type="number" name="rent_amount" class="field-input" step="0.01" min="0" required
+                   value="{{ request.form.get('rent_amount','') }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Charges (€)</label>
+            <input type="number" name="charges" class="field-input" step="0.01" min="0"
+                   value="{{ request.form.get('charges', 0) }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Dépôt de garantie (€)</label>
+            <input type="number" name="deposit" class="field-input" step="0.01" min="0"
+                   value="{{ request.form.get('deposit', 0) }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Jour de paiement</label>
+            <input type="number" name="payment_day" class="field-input" min="1" max="28"
+                   value="{{ request.form.get('payment_day', 1) }}">
+            <span class="field-hint">Jour du mois attendu (1–28)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Notes</div>
+        <div class="field">
+          <textarea name="notes" class="field-textarea" rows="3"
+                    placeholder="Clauses particulières, informations complémentaires…">{{ request.form.get('notes','') }}</textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('owner_leases') }}" class="btn btn-ghost">Annuler</a>
+        <button type="submit" class="btn btn-primary">Créer le bail</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

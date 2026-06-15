@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — GestImmo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-box">
+    <span class="auth-logo">&#127968;</span>
+    <h1 class="auth-title">GestImmo</h1>
+    <p class="auth-sub">Gestion locative immobilière</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="flash flash-{{ 'error' if cat=='error' else 'success' }}" style="margin-bottom:1rem">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="field" style="margin-bottom:1rem">
+        <label class="field-label">Nom d'utilisateur</label>
+        <input type="text" name="username" class="field-input" placeholder="votre_pseudo"
+               value="{{ request.form.get('username','') }}" required autocomplete="username">
+      </div>
+      <div class="field" style="margin-bottom:1.5rem">
+        <label class="field-label">Mot de passe</label>
+        <input type="password" name="password" class="field-input" placeholder="••••••••"
+               required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Se connecter</button>
+    </form>
+
+    <p style="text-align:center;margin-top:1.25rem;font-size:.875rem;color:var(--text-muted)">
+      Pas encore de compte ?
+      <a href="{{ url_for('register') }}">Créer un compte</a>
+    </p>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

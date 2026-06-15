@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Utilisateurs — SecOps Admin{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">&#9881; Gestion des utilisateurs</h1>
+    <p class="page-sub">{{ users | length }} compte{% if users | length != 1 %}s{% endif %}</p>
+  </div>
+</div>
+
+<!-- New user form -->
+<div class="card" style="margin-bottom:1.5rem">
+  <div class="card-hd"><span class="card-title">Créer un compte</span></div>
+  <form method="POST" action="{{ url_for('admin_user_new') }}" class="card-body">
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-label">Prénom et nom *</label>
+        <input type="text" name="full_name" class="field-input" required placeholder="Jean Dupont">
+      </div>
+      <div class="field">
+        <label class="field-label">Identifiant *</label>
+        <input type="text" name="username" class="field-input" required placeholder="j.dupont" autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="field-label">Email *</label>
+        <input type="email" name="email" class="field-input" required placeholder="j.dupont@soc.fr">
+      </div>
+      <div class="field">
+        <label class="field-label">Rôle</label>
+        <select name="role" class="field-select">
+          {% for r in roles %}
+          <option value="{{ r }}">{{ r | capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Mot de passe</label>
+        <input type="text" name="password" class="field-input" placeholder="Secops2024! (défaut si vide)">
+        <span class="field-hint">Laissez vide pour le mot de passe par défaut : Secops2024!</span>
+      </div>
+    </div>
+    <div style="margin-top:1rem">
+      <button type="submit" class="btn btn-primary">Créer le compte</button>
+    </div>
+  </form>
+</div>
+
+<!-- Users table -->
+<div class="card">
+  <div class="card-hd"><span class="card-title">Comptes existants</span></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Identifiant</th>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th>Créé le</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr class="{% if not u.is_active %}row-disabled{% endif %}">
+          <td class="fw-700">{{ u.full_name }}</td>
+          <td class="mono fs-sm">@{{ u.username }}</td>
+          <td class="fs-sm tc-muted">{{ u.email }}</td>
+          <td>
+            <!-- Role change form -->
+            <form method="POST" action="{{ url_for('admin_user_role', uid=u.id) }}" style="display:inline-flex;gap:.5rem;align-items:center">
+              <select name="role" class="field-select" style="font-size:.75rem;padding:.2rem .5rem"
+                      onchange="this.form.submit()" {% if u.id == session.user_id %}disabled{% endif %}>
+                {% for r in roles %}
+                <option value="{{ r }}" {% if u.role == r %}selected{% endif %}>{{ r }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </td>
+          <td>
+            {% if u.is_active %}
+            <span class="st-badge st-res">Actif</span>
+            {% else %}
+            <span class="st-badge st-closed">Désactivé</span>
+            {% endif %}
+          </td>
+          <td class="tc-muted fs-sm mono">{{ u.created_at | dt }}</td>
+          <td>
+            {% if u.id != session.user_id %}
+            <form method="POST" action="{{ url_for('admin_user_toggle', uid=u.id) }}"
+                  data-confirm="{% if u.is_active %}Désactiver le compte {{ u.username }} ?{% else %}Réactiver le compte {{ u.username }} ?{% endif %}"
+                  style="display:inline">
+              <button type="submit" class="btn btn-ghost btn-sm">
+                {% if u.is_active %}&#128683; Désactiver{% else %}&#128994; Activer{% endif %}
+              </button>
+            </form>
+            {% else %}
+            <span class="tc-muted fs-sm">(vous-même)</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="tbl-empty">Aucun utilisateur.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

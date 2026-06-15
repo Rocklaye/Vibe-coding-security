@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Incidents — SecOps{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">&#128680; Incidents</h1>
+    <p class="page-sub">{{ incs | length }} résultat{% if incs | length != 1 %}s{% endif %}</p>
+  </div>
+  <a href="{{ url_for('incident_new') }}" class="btn btn-primary">+ Nouvel incident</a>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:1.25rem">
+  <form method="GET" class="filter-row">
+    <input type="text" name="q" class="field-input" placeholder="Recherche (ref, titre, description)…"
+           value="{{ filters.q }}" style="min-width:200px;flex:1">
+
+    <select name="severity" class="field-select">
+      <option value="">Toutes sévérités</option>
+      {% for s in severities %}
+      <option value="{{ s }}" {% if filters.severity == s %}selected{% endif %}>{{ s | capitalize }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="status" class="field-select">
+      <option value="">Tous statuts</option>
+      {% for s in statuses %}
+      <option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="category" class="field-select">
+      <option value="">Toutes catégories</option>
+      {% for c in categories %}
+      <option value="{{ c }}" {% if filters.category == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="assigned" class="field-select">
+      <option value="">Tous</option>
+      <option value="me" {% if filters.assigned == 'me' %}selected{% endif %}>Mes incidents</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Filtrer</button>
+    {% if filters.q or filters.severity or filters.status or filters.category or filters.assigned %}
+    <a href="{{ url_for('incidents') }}" class="btn btn-ghost">Réinitialiser</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Quick severity tabs -->
+<div class="tab-row" style="margin-bottom:1rem">
+  <a href="{{ url_for('incidents') }}" class="tab {% if not filters.severity %}active{% endif %}">Tout</a>
+  <a href="{{ url_for('incidents') }}?severity=critical" class="tab tc-crit {% if filters.severity=='critical' %}active{% endif %}">&#128308; Critique</a>
+  <a href="{{ url_for('incidents') }}?severity=high" class="tab tc-high {% if filters.severity=='high' %}active{% endif %}">&#128992; Élevé</a>
+  <a href="{{ url_for('incidents') }}?severity=medium" class="tab {% if filters.severity=='medium' %}active{% endif %}">&#128309; Moyen</a>
+  <a href="{{ url_for('incidents') }}?severity=low" class="tab {% if filters.severity=='low' %}active{% endif %}">&#128994; Faible</a>
+  <a href="{{ url_for('incidents') }}?status=open" class="tab {% if filters.status=='open' %}active{% endif %}">Ouverts</a>
+</div>
+
+<!-- Incident table -->
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ref</th>
+          <th>Titre</th>
+          <th>Catégorie</th>
+          <th>Sévérité</th>
+          <th>Statut</th>
+          <th>Assigné</th>
+          <th>Âge</th>
+          <th>Créé</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inc in incs %}
+        <tr class="inc-row" data-href="{{ url_for('incident_detail', inc_id=inc.id) }}">
+          <td><span class="inc-ref">{{ inc.ref }}</span></td>
+          <td>
+            <span class="fw-700">{{ inc.title | truncate(60) }}</span>
+            {% if inc.ioc %}<br><span class="fs-xs tc-muted">IOC: {{ inc.ioc | truncate(40) }}</span>{% endif %}
+          </td>
+          <td class="tc-muted fs-sm">{{ inc.category }}</td>
+          <td>
+            <span class="sev-badge {{ inc.severity | sev_class }}">
+              <span class="sev-dot {{ inc.severity }}"></span>{{ inc.severity }}
+            </span>
+          </td>
+          <td><span class="st-badge {{ inc.status | status_class }}">{{ inc.status }}</span></td>
+          <td class="fs-sm">{{ inc.assignee.full_name if inc.assignee else '<span class="tc-muted">—</span>' }}</td>
+          <td class="mono fs-sm {% if inc.age_hours > 72 %}tc-crit{% elif inc.age_hours > 24 %}tc-high{% endif %}">
+            {{ inc.age_hours }}h
+          </td>
+          <td class="tc-muted fs-sm mono">{{ inc.created_at | dt }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="tbl-empty">
+            Aucun incident trouvé.
+            {% if not filters.q and not filters.severity and not filters.status %}
+            <a href="{{ url_for('incident_new') }}">Créer le premier incident</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

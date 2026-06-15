@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}{{ tenant.full_name }} — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">{{ tenant.full_name }}</h1>
+    <p class="page-sub">{{ tenant.email }}{% if tenant.phone %} · {{ tenant.phone }}{% endif %}</p>
+  </div>
+  <a href="{{ url_for('owner_tenants') }}" class="btn btn-ghost">&#8592; Locataires</a>
+</div>
+
+<div class="detail-layout">
+  <div>
+    <!-- Payment history -->
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">&#128176; Historique des paiements</span>
+        <a href="{{ url_for('payment_new') }}" class="btn btn-success btn-sm">+ Encaisser</a>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Bien</th><th>Période</th><th>Mode</th><th>Montant</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for p in payments %}
+            <tr>
+              <td>{{ p.payment_date | dfr }}</td>
+              <td>{{ p.lease.property.title }}</td>
+              <td>{{ p.period_label }}</td>
+              <td><span class="badge badge-info">{{ p.method }}</span></td>
+              <td class="fw-bold text-success">{{ p.amount | eur }}</td>
+              <td>
+                <a href="{{ url_for('payment_receipt', payment_id=p.id) }}" class="btn btn-ghost btn-sm" target="_blank">Quittance</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="tbl-empty">Aucun paiement</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div>
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Informations</span></div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-row"><span class="info-key">Nom</span><span class="info-val">{{ tenant.full_name }}</span></div>
+          <div class="info-row"><span class="info-key">Email</span><span class="info-val">{{ tenant.email }}</span></div>
+          <div class="info-row"><span class="info-key">Téléphone</span><span class="info-val">{{ tenant.phone or '—' }}</span></div>
+          <div class="info-row"><span class="info-key">Adresse</span><span class="info-val">{{ tenant.address or '—' }}</span></div>
+          <div class="info-row"><span class="info-key">Identifiant</span><span class="info-val">{{ tenant.username }}</span></div>
+          <div class="info-row"><span class="info-key">Depuis</span><span class="info-val">{{ tenant.created_at.strftime('%d/%m/%Y') }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Baux -->
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Baux</span></div>
+      <div class="card-body">
+        {% for l in leases %}
+        <div style="padding:.6rem 0;border-bottom:1px solid var(--border)">
+          <a href="{{ url_for('property_detail', prop_id=l.property.id) }}" class="fw-bold">{{ l.property.title }}</a>
+          <span class="badge badge-{{ 'success' if l.status=='active' else 'muted' }}" style="margin-left:.4rem">{{ l.status }}</span>
+          <div class="fs-sm text-muted">{{ l.start_date | dfr }} → {{ l.end_date | dfr if l.end_date else '…' }}</div>
+          <div class="fs-sm fw-bold" style="margin-top:.2rem">{{ l.total_rent | eur }}/mois</div>
+        </div>
+        {% else %}
+        <p class="text-muted fs-sm">Aucun bail</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

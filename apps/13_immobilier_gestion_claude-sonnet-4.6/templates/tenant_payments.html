@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Mes paiements — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">Mes paiements</h1>
+    <p class="page-sub">{{ payments | length }} paiement{% if payments|length != 1 %}s{% endif %} enregistré{% if payments|length != 1 %}s{% endif %}</p>
+  </div>
+</div>
+
+<!-- Summary stats -->
+{% if payments %}
+{% set total = payments | sum(attribute='amount') %}
+<div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem">
+  <div class="stat-card s">
+    <div class="stat-val">{{ payments | length }}</div>
+    <div class="stat-label">Paiements enregistrés</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">{{ total | eur }}</div>
+    <div class="stat-label">Total payé</div>
+  </div>
+  <div class="stat-card a">
+    <div class="stat-val">{{ payments[0].period_label }}</div>
+    <div class="stat-label">Dernier loyer</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Période</th><th>Bien</th><th>Mode</th><th>Montant</th><th>Quittance</th></tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td>{{ p.payment_date | dfr }}</td>
+          <td class="fw-bold">{{ p.period_label }}</td>
+          <td>{{ p.lease.property.title }}</td>
+          <td><span class="badge badge-info">{{ p.method }}</span></td>
+          <td class="fw-bold text-success">{{ p.amount | eur }}</td>
+          <td>
+            <a href="{{ url_for('tenant_receipt', payment_id=p.id) }}" class="btn btn-ghost btn-sm" target="_blank">
+              &#128438; Télécharger
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="tbl-empty">Aucun paiement enregistré pour le moment.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

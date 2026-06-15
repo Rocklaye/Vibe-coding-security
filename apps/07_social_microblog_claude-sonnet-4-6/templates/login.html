@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Connexion — Microblog{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+
+    <div class="auth-head">
+      <span class="auth-logo">&#9729;</span>
+      <h1 class="auth-title">Connexion</h1>
+      <p class="auth-sub">Content de vous revoir !</p>
+    </div>
+
+    <form action="{{ url_for('login') }}" method="POST" class="auth-form" novalidate>
+      <div class="field">
+        <label for="username" class="field-label">Nom d'utilisateur</label>
+        <input
+          type="text" id="username" name="username"
+          class="field-input"
+          placeholder="votre_pseudo"
+          autocomplete="username"
+          value="{{ request.form.get('username', '') }}"
+          required
+        >
+      </div>
+      <div class="field">
+        <label for="password" class="field-label">Mot de passe</label>
+        <input
+          type="password" id="password" name="password"
+          class="field-input"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+    </form>
+
+    <p class="auth-switch">
+      Pas encore de compte ?
+      <a href="{{ url_for('register') }}" class="link">Créer un compte</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Journal d'audit — SecOps{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">&#128203; Journal d'audit</h1>
+    <p class="page-sub">{{ logs | length }} entrée{% if logs | length != 1 %}s{% endif %} (200 dernières)</p>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:1.25rem">
+  <form method="GET" class="filter-row">
+    <input type="text" name="action" class="field-input"
+           placeholder="Filtrer par action (LOGIN, INCIDENT_CREATED…)"
+           value="{{ action }}" style="flex:1;min-width:200px">
+
+    <select name="user_id" class="field-select">
+      <option value="">Tous les utilisateurs</option>
+      {% for u in users %}
+      <option value="{{ u.id }}" {% if sel_user == u.id %}selected{% endif %}>{{ u.full_name }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary">Filtrer</button>
+    {% if action or sel_user %}
+    <a href="{{ url_for('audit_log') }}" class="btn btn-ghost">Réinitialiser</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Quick action filters -->
+<div class="tab-row" style="margin-bottom:1rem">
+  <a href="{{ url_for('audit_log') }}" class="tab {% if not action %}active{% endif %}">Tout</a>
+  <a href="{{ url_for('audit_log') }}?action=LOGIN" class="tab {% if action=='LOGIN' %}active{% endif %}">Connexions</a>
+  <a href="{{ url_for('audit_log') }}?action=INCIDENT" class="tab {% if action=='INCIDENT' %}active{% endif %}">Incidents</a>
+  <a href="{{ url_for('audit_log') }}?action=STATUS" class="tab {% if action=='STATUS' %}active{% endif %}">Statuts</a>
+  <a href="{{ url_for('audit_log') }}?action=USER" class="tab {% if action=='USER' %}active{% endif %}">Utilisateurs</a>
+</div>
+
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Utilisateur</th>
+          <th>Action</th>
+          <th>Cible</th>
+          <th>Détails</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="mono fs-sm tc-muted">{{ log.created_at | dt }}</td>
+          <td class="fs-sm">
+            {% if log.user %}
+            <span class="fw-700">{{ log.user.full_name }}</span>
+            <span class="sb-role-badge sb-role-{{ log.user.role }}" style="margin-left:.25rem;font-size:.65rem">{{ log.user.role }}</span>
+            {% else %}
+            <span class="tc-muted">Système</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="audit-action
+              {% if 'LOGIN' in log.action %}audit-auth
+              {% elif 'INCIDENT' in log.action or 'STATUS' in log.action or 'SEVERITY' in log.action or 'TIMELINE' in log.action or 'COMMENT' in log.action %}audit-incident
+              {% elif 'USER' in log.action %}audit-user
+              {% else %}audit-other
+              {% endif %}
+            ">{{ log.action }}</span>
+          </td>
+          <td class="fs-sm">
+            {% if log.target_type == 'incident' and log.target_ref %}
+            <a href="{{ url_for('incidents') }}" class="inc-ref" style="font-size:.78rem">{{ log.target_ref }}</a>
+            {% elif log.target_ref %}
+            <span class="tc-muted">{{ log.target_type }}: {{ log.target_ref }}</span>
+            {% else %}
+            <span class="tc-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="fs-sm tc-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+              title="{{ log.details }}">{{ log.details or '—' }}</td>
+          <td class="mono fs-xs tc-muted">{{ log.ip_address or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="tbl-empty">Aucune entrée d'audit trouvée.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

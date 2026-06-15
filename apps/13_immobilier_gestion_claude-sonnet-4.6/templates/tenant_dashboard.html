@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Mon logement — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">Bonjour, {{ session.full_name.split()[0] }} &#128075;</h1>
+    <p class="page-sub">{{ today.strftime('%A %d %B %Y') }}</p>
+  </div>
+</div>
+
+{% if lease %}
+
+<!-- Lease banner -->
+<div class="lease-banner">
+  <div>
+    <div class="lease-banner-prop">{{ lease.property.title }}</div>
+    <div class="lease-banner-addr">{{ lease.property.address }}, {{ lease.property.postal_code }} {{ lease.property.city }}</div>
+    <div style="margin-top:.75rem;font-size:.8rem;opacity:.7">
+      Bail depuis le {{ lease.start_date | dfr }}
+      {% if lease.end_date %} jusqu'au {{ lease.end_date | dfr }}{% endif %}
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div class="lease-banner-price">{{ lease.total_rent | eur }}</div>
+    <div class="lease-banner-pm">/ mois charges comprises</div>
+    <div style="margin-top:.5rem;font-size:.75rem;opacity:.7">
+      Échéance le {{ lease.payment_day }} de chaque mois
+    </div>
+  </div>
+</div>
+
+<!-- Payment status -->
+{% if not paid_this_month %}
+<div class="alert alert-warning">
+  <span>&#9888;</span>
+  <span>
+    <strong>Loyer du mois de {{ today.strftime('%B %Y') }} non enregistré.</strong>
+    Votre propriétaire enregistrera votre paiement dès réception.
+  </span>
+</div>
+{% else %}
+<div class="alert alert-success">
+  <span>&#10003;</span>
+  <span><strong>Loyer {{ today.strftime('%B %Y') }} enregistré.</strong> Merci !</span>
+</div>
+{% endif %}
+
+<div class="grid-2">
+  <!-- Lease details -->
+  <div class="card">
+    <div class="card-hd"><span class="card-title">&#128196; Détails du bail</span></div>
+    <div class="card-body">
+      <div class="info-list">
+        <div class="info-row"><span class="info-key">Type</span><span class="info-val">{{ lease.lease_type | capitalize }}</span></div>
+        <div class="info-row"><span class="info-key">Loyer HC</span><span class="info-val">{{ lease.rent_amount | eur }}</span></div>
+        <div class="info-row"><span class="info-key">Charges</span><span class="info-val">{{ lease.charges | eur }}</span></div>
+        <div class="info-row"><span class="info-key">Total CC</span><span class="info-val fw-bold text-primary">{{ lease.total_rent | eur }}</span></div>
+        <div class="info-row"><span class="info-key">Dépôt de garantie</span><span class="info-val">{{ lease.deposit | eur }}</span></div>
+        <div class="info-row"><span class="info-key">Paiement le</span><span class="info-val">{{ lease.payment_day }} du mois</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent payments -->
+  <div class="card">
+    <div class="card-hd">
+      <span class="card-title">&#128176; Derniers paiements</span>
+      <a href="{{ url_for('tenant_payments') }}" class="btn btn-ghost btn-sm">Tout voir</a>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Période</th><th>Montant</th><th></th></tr></thead>
+        <tbody>
+          {% for p in payments %}
+          <tr>
+            <td>{{ p.period_label }}</td>
+            <td class="fw-bold text-success">{{ p.amount | eur }}</td>
+            <td>
+              <a href="{{ url_for('tenant_receipt', payment_id=p.id) }}" class="btn btn-ghost btn-sm" target="_blank">Quittance</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="tbl-empty">Aucun paiement</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="card" style="text-align:center;padding:3rem">
+  <p style="font-size:3rem">&#127968;</p>
+  <p style="color:var(--text-muted)">Aucun bail actif trouvé pour votre compte.</p>
+  <p class="fs-sm text-muted" style="margin-top:.5rem">Contactez votre propriétaire pour accéder à votre espace locataire.</p>
+</div>
+{% endif %}
+{% endblock %}

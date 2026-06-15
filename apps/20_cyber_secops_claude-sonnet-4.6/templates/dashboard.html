@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord — SecOps{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">&#128200; Tableau de bord</h1>
+    <p class="page-sub">{{ now.strftime('%A %d %B %Y — %H:%M UTC') }}</p>
+  </div>
+  <a href="{{ url_for('incident_new') }}" class="btn btn-primary">+ Nouvel incident</a>
+</div>
+
+<!-- Stats row -->
+<div class="stats-row">
+  <div class="stat-card crit">
+    <div class="stat-val" id="live-critical">{{ by_severity.critical }}</div>
+    <div class="stat-label">&#128308; Critique</div>
+  </div>
+  <div class="stat-card high">
+    <div class="stat-val" id="live-high">{{ by_severity.high }}</div>
+    <div class="stat-label">&#128992; Élevé</div>
+  </div>
+  <div class="stat-card med">
+    <div class="stat-val" id="live-medium">{{ by_severity.medium }}</div>
+    <div class="stat-label">&#128309; Moyen</div>
+  </div>
+  <div class="stat-card low">
+    <div class="stat-val" id="live-low">{{ by_severity.low }}</div>
+    <div class="stat-label">&#128994; Faible</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" id="live-open">{{ total_open }}</div>
+    <div class="stat-label">Incidents ouverts</div>
+  </div>
+  <div class="stat-card acc">
+    <div class="stat-val">{{ mttr }}h</div>
+    <div class="stat-label">MTTR (30 jours)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">{{ total_last7 }}</div>
+    <div class="stat-label">7 derniers jours</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">{{ total_last30 }}</div>
+    <div class="stat-label">30 derniers jours</div>
+  </div>
+</div>
+
+<!-- Critical alert -->
+{% if by_severity.critical > 0 %}
+<div class="alert alert-danger" style="margin-bottom:1.25rem">
+  <strong>&#9888; {{ by_severity.critical }} incident{% if by_severity.critical > 1 %}s{% endif %} CRITIQUE{% if by_severity.critical > 1 %}S{% endif %} en cours</strong> —
+  <a href="{{ url_for('incidents') }}?severity=critical">Voir les incidents critiques</a>
+</div>
+{% endif %}
+
+<div class="grid-2">
+  <!-- Severity breakdown bar chart -->
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Incidents actifs par sévérité</span></div>
+    <div class="card-body">
+      {% set max_sev = [by_severity.critical, by_severity.high, by_severity.medium, by_severity.low] | max %}
+      {% for sev, color in [('critical','var(--crit)'),('high','var(--high)'),('medium','var(--med)'),('low','var(--low)')] %}
+      {% set cnt = by_severity[sev] %}
+      {% set pct = (cnt / max_sev * 100) | int if max_sev > 0 else 0 %}
+      <div class="bar-row">
+        <span class="bar-label" style="color:{{ color }}">{{ sev | capitalize }}</span>
+        <div class="bar-track">
+          <div class="bar-fill" data-pct="{{ pct }}" style="width:0;background:{{ color }}"></div>
+        </div>
+        <span class="bar-count" style="color:{{ color }}">{{ cnt }}</span>
+      </div>
+      {% endfor %}
+
+      <!-- By status -->
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+        <div class="fs-xs tc-muted" style="margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.05em">Par statut</div>
+        {% set active_statuses = [('open','var(--crit)'),('investigating','var(--high)'),
+                                   ('contained','#a371f7'),('eradicated','var(--accent)'),('recovering','var(--med)')] %}
+        {% for st, color in active_statuses %}
+        {% if by_status[st] > 0 %}
+        <div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.25rem 0">
+          <span class="st-badge st-{{ st }}">{{ st }}</span>
+          <span style="color:{{ color }};font-weight:700">{{ by_status[st] }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 7-day sparkline -->
+  <div class="card">
+    <div class="card-hd"><span class="card-title">Incidents — 7 derniers jours</span></div>
+    <div class="card-body">
+      {% set max_day = daily | map(attribute='count') | max %}
+      <div class="spark-row">
+        {% for d in daily %}
+        {% set h = ((d.count / max_day * 46) | int) if max_day > 0 else 3 %}
+        <div class="spark-col">
+          <div class="spark-bar" style="height:{{ h if h > 3 else 3 }}px"
+               title="{{ d.count }} incident{% if d.count != 1 %}s{% endif %} — {{ d.label }}"></div>
+          <span class="spark-lbl">{{ d.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% set total_week = daily | sum(attribute='count') %}
+      <p class="fs-sm tc-muted" style="margin-top:.75rem">Total cette semaine : <strong style="color:var(--text)">{{ total_week }}</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- My incidents (analyst view) -->
+{% if my_incidents %}
+<div class="card">
+  <div class="card-hd">
+    <span class="card-title">&#128680; Mes incidents assignés</span>
+    <a href="{{ url_for('incidents') }}?assigned=me" class="btn btn-ghost btn-sm">Voir tout</a>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Ref</th><th>Titre</th><th>Sévérité</th><th>Statut</th><th>Âge</th></tr></thead>
+      <tbody>
+        {% for inc in my_incidents %}
+        <tr class="inc-row" data-href="{{ url_for('incident_detail', inc_id=inc.id) }}">
+          <td><span class="inc-ref">{{ inc.ref }}</span></td>
+          <td class="fw-700">{{ inc.title | truncate(55) }}</td>
+          <td><span class="sev-badge {{ inc.severity | sev_class }}">{{ inc.severity }}</span></td>
+          <td><span class="st-badge {{ inc.status | status_class }}">{{ inc.status }}</span></td>
+          <td class="tc-muted mono">{{ inc.age_hours }}h</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Analyst workload (manager/admin) -->
+{% if analysts_load %}
+<div class="card">
+  <div class="card-hd">
+    <span class="card-title">&#128100; Charge de travail — Analystes</span>
+    <a href="{{ url_for('analysts') }}" class="btn btn-ghost btn-sm">Détails</a>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Analyste</th><th>Rôle</th><th>Incidents actifs</th><th></th></tr></thead>
+      <tbody>
+        {% for u, count in analysts_load %}
+        <tr>
+          <td class="fw-700">{{ u.full_name }}</td>
+          <td><span class="sb-role-badge sb-role-{{ u.role }}">{{ u.role }}</span></td>
+          <td>
+            <span style="font-size:1rem;font-weight:800;color:{% if count > 5 %}var(--crit){% elif count > 2 %}var(--high){% else %}var(--low){% endif %}">{{ count }}</span>
+          </td>
+          <td><a href="{{ url_for('analysts') }}" class="btn btn-ghost btn-sm">Détails</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent incidents -->
+<div class="card">
+  <div class="card-hd">
+    <span class="card-title">&#128203; Incidents récents</span>
+    <a href="{{ url_for('incidents') }}" class="btn btn-ghost btn-sm">Voir tout</a>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Ref</th><th>Titre</th><th>Catégorie</th><th>Sévérité</th><th>Statut</th><th>Assigné</th><th>Créé</th></tr>
+      </thead>
+      <tbody>
+        {% for inc in recent %}
+        <tr class="inc-row" data-href="{{ url_for('incident_detail', inc_id=inc.id) }}">
+          <td><span class="inc-ref">{{ inc.ref }}</span></td>
+          <td class="fw-700">{{ inc.title | truncate(45) }}</td>
+          <td class="tc-muted fs-sm">{{ inc.category }}</td>
+          <td><span class="sev-badge {{ inc.severity | sev_class }}">
+            <span class="sev-dot {{ inc.severity }}"></span>{{ inc.severity }}
+          </span></td>
+          <td><span class="st-badge {{ inc.status | status_class }}">{{ inc.status }}</span></td>
+          <td class="fs-sm">{{ inc.assignee.full_name if inc.assignee else '—' }}</td>
+          <td class="tc-muted fs-sm mono">{{ inc.created_at | timeago }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="tbl-empty">Aucun incident. <a href="{{ url_for('incident_new') }}">Créer le premier</a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Pass Incident model to template — workaround for dashboard queries
+// (queries are already done in the route, this is just for the workload table)
+</script>
+{% endblock %}

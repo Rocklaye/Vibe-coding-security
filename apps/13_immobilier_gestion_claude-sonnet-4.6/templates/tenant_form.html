@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Nouveau locataire — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <h1 class="page-title">Créer un locataire</h1>
+  <a href="{{ url_for('owner_tenants') }}" class="btn btn-ghost">&#8592; Retour</a>
+</div>
+
+<div class="card form-wrap">
+  <div class="card-body">
+    <div class="alert alert-info" style="margin-bottom:1.25rem">
+      <span>&#8505;</span>
+      <span>Les identifiants de connexion seront communiqués au locataire. Le mot de passe par défaut est <strong>locataire123</strong> s'il n'est pas renseigné.</span>
+    </div>
+
+    <form method="POST">
+      <div class="form-section">
+        <div class="form-section-title">Identité</div>
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Prénom et nom *</label>
+            <input type="text" name="full_name" class="field-input" required
+                   placeholder="Marie Martin" value="{{ request.form.get('full_name','') }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Téléphone</label>
+            <input type="tel" name="phone" class="field-input"
+                   placeholder="06 12 34 56 78" value="{{ request.form.get('phone','') }}">
+          </div>
+          <div class="field full">
+            <label class="field-label">Adresse personnelle</label>
+            <input type="text" name="address" class="field-input"
+                   placeholder="Adresse actuelle du locataire" value="{{ request.form.get('address','') }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Accès à l'espace locataire</div>
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Nom d'utilisateur *</label>
+            <input type="text" name="username" class="field-input" required
+                   placeholder="marie_martin" value="{{ request.form.get('username','') }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Email *</label>
+            <input type="email" name="email" class="field-input" required
+                   placeholder="marie@exemple.fr" value="{{ request.form.get('email','') }}">
+          </div>
+          <div class="field">
+            <label class="field-label">Mot de passe</label>
+            <input type="text" name="password" class="field-input"
+                   placeholder="locataire123 (défaut)">
+            <span class="field-hint">Laissez vide pour utiliser le mot de passe par défaut</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('owner_tenants') }}" class="btn btn-ghost">Annuler</a>
+        <button type="submit" class="btn btn-primary">Créer le locataire</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

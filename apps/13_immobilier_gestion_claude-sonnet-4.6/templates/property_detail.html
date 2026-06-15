@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}{{ prop.title }} — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">{{ prop.title }}</h1>
+    <p class="page-sub">{{ prop.address }}, {{ prop.postal_code }} {{ prop.city }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('property_edit', prop_id=prop.id) }}" class="btn btn-ghost">&#9998; Modifier</a>
+    {% if not prop.active_lease %}
+      <a href="{{ url_for('lease_new') }}" class="btn btn-primary">+ Créer un bail</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="detail-layout">
+  <div>
+    <!-- Photos -->
+    {% if prop.photos %}
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-body" style="padding:1rem">
+        <div class="photo-gallery">
+          {% for ph in prop.photos %}
+          <img src="{{ url_for('uploaded_file', filename=ph.filename) }}" class="photo-thumb" alt="">
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Current lease -->
+    {% if prop.active_lease %}
+    {% set l = prop.active_lease %}
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-hd">
+        <span class="card-title">&#128196; Bail actif</span>
+        <span class="badge badge-success">Actif</span>
+      </div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-row"><span class="info-key">Locataire</span><span class="info-val"><a href="{{ url_for('tenant_detail', tenant_id=l.tenant.id) }}">{{ l.tenant.full_name }}</a></span></div>
+          <div class="info-row"><span class="info-key">Début</span><span class="info-val">{{ l.start_date | dfr }}</span></div>
+          <div class="info-row"><span class="info-key">Fin</span><span class="info-val">{{ l.end_date | dfr if l.end_date else 'Indéterminée' }}</span></div>
+          <div class="info-row"><span class="info-key">Loyer HC</span><span class="info-val">{{ l.rent_amount | eur }}</span></div>
+          <div class="info-row"><span class="info-key">Charges</span><span class="info-val">{{ l.charges | eur }}</span></div>
+          <div class="info-row"><span class="info-key">Total CC</span><span class="info-val fw-800 text-primary">{{ l.total_rent | eur }}</span></div>
+          <div class="info-row"><span class="info-key">Dépôt de garantie</span><span class="info-val">{{ l.deposit | eur }}</span></div>
+          <div class="info-row"><span class="info-key">Paiement le</span><span class="info-val">{{ l.payment_day }} du mois</span></div>
+        </div>
+        <div class="d-flex gap-2" style="margin-top:1rem">
+          <a href="{{ url_for('payment_new') }}?lease_id={{ l.id }}" class="btn btn-success btn-sm">&#128176; Encaisser loyer</a>
+          <a href="{{ url_for('inspection_new') }}" class="btn btn-ghost btn-sm">&#128269; État des lieux</a>
+          <form method="POST" action="{{ url_for('lease_terminate', lease_id=l.id) }}"
+                data-confirm="Résilier ce bail ?">
+            <button type="submit" class="btn btn-danger btn-sm">Résilier</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+      <span>&#9888;</span>
+      <span>Ce bien est actuellement <strong>vacant</strong>.
+        <a href="{{ url_for('lease_new') }}">Créer un bail</a>
+      </span>
+    </div>
+    {% endif %}
+
+    <!-- Payment history -->
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">&#128200; Historique des paiements</span>
+        <a href="{{ url_for('owner_payments') }}" class="btn btn-ghost btn-sm">Tout voir</a>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Période</th><th>Mode</th><th>Montant</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for p in history %}
+            <tr>
+              <td>{{ p.payment_date | dfr }}</td>
+              <td>{{ p.period_label }}</td>
+              <td>{{ p.method }}</td>
+              <td class="fw-bold text-success">{{ p.amount | eur }}</td>
+              <td>
+                <a href="{{ url_for('payment_receipt', payment_id=p.id) }}" class="btn btn-ghost btn-sm" target="_blank">Quittance</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="tbl-empty">Aucun paiement enregistré</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div>
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Informations</span></div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-row"><span class="info-key">Type</span><span class="info-val">{{ prop.property_type }}</span></div>
+          <div class="info-row"><span class="info-key">Surface</span><span class="info-val">{{ prop.area_m2 }} m²</span></div>
+          <div class="info-row"><span class="info-key">Pièces</span><span class="info-val">{{ prop.rooms }}</span></div>
+          <div class="info-row"><span class="info-key">Loyer HC</span><span class="info-val">{{ prop.rent_amount | eur }}</span></div>
+          <div class="info-row"><span class="info-key">Charges</span><span class="info-val">{{ prop.charges | eur }}</span></div>
+          <div class="info-row"><span class="info-key">Dépôt</span><span class="info-val">{{ prop.deposit | eur }}</span></div>
+          <div class="info-row"><span class="info-key">Ajouté le</span><span class="info-val">{{ prop.created_at.strftime('%d/%m/%Y') }}</span></div>
+        </div>
+        {% if prop.description %}
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+          <p class="fs-sm text-muted" style="white-space:pre-line">{{ prop.description }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Past leases -->
+    {% set past = prop.leases | selectattr('status', 'eq', 'terminated') | list %}
+    {% if past %}
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Anciens baux</span></div>
+      <div class="card-body">
+        {% for l in past %}
+        <div style="padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.82rem">
+          <span class="fw-bold">{{ l.tenant.full_name }}</span><br>
+          <span class="text-muted">{{ l.start_date | dfr }} → {{ l.end_date | dfr if l.end_date else '…' }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

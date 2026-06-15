@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Paiements — GestImmo{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">Paiements de loyer</h1>
+    <p class="page-sub">{{ today.strftime('%B %Y') }}</p>
+  </div>
+  <a href="{{ url_for('payment_new') }}" class="btn btn-primary">+ Encaisser un loyer</a>
+</div>
+
+<!-- Status du mois en cours -->
+{% if statuses %}
+<div class="card" style="margin-bottom:1.25rem">
+  <div class="card-hd">
+    <span class="card-title">&#128200; Suivi — {{ today.strftime('%B %Y') }}</span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Bien</th><th>Locataire</th><th>Loyer CC</th><th>Échéance</th><th>Statut</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for s in statuses %}
+        <tr>
+          <td class="fw-bold">{{ s.lease.property.title }}</td>
+          <td>{{ s.lease.tenant.full_name }}</td>
+          <td class="fw-bold">{{ s.lease.total_rent | eur }}</td>
+          <td>{{ s.lease.payment_day }}/mois</td>
+          <td>
+            {% if s.paid %}
+              <span class="badge badge-success">&#10003; Payé</span>
+            {% elif s.overdue %}
+              <span class="badge badge-danger">&#9888; En retard</span>
+            {% else %}
+              <span class="badge badge-warning">En attente</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if not s.paid %}
+              <a href="{{ url_for('payment_new') }}?lease_id={{ s.lease.id }}" class="btn btn-accent btn-sm">Encaisser</a>
+            {% else %}
+              <span class="text-muted fs-sm">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Historique complet -->
+<div class="card">
+  <div class="card-hd">
+    <span class="card-title">&#128196; Historique complet</span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Bien</th><th>Locataire</th><th>Période</th><th>Mode</th><th>Référence</th><th>Montant</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td>{{ p.payment_date | dfr }}</td>
+          <td>
+            <a href="{{ url_for('property_detail', prop_id=p.lease.property.id) }}">{{ p.lease.property.title }}</a>
+          </td>
+          <td>{{ p.lease.tenant.full_name }}</td>
+          <td>{{ p.period_label }}</td>
+          <td><span class="badge badge-info">{{ p.method }}</span></td>
+          <td class="fs-sm text-muted">{{ p.reference or '—' }}</td>
+          <td class="fw-bold text-success">{{ p.amount | eur }}</td>
+          <td>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('payment_receipt', payment_id=p.id) }}" class="btn btn-ghost btn-sm" target="_blank">Quittance</a>
+              <form method="POST" action="{{ url_for('payment_delete', payment_id=p.id) }}"
+                    data-confirm="Supprimer ce paiement ?">
+                <button type="submit" class="btn btn-danger btn-sm">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="tbl-empty">Aucun paiement enregistré.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

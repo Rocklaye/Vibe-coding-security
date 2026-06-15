@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Analystes — SecOps{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">&#128100; Analystes &amp; charge de travail</h1>
+    <p class="page-sub">{{ data | length }} membre{% if data | length != 1 %}s{% endif %} actif{% if data | length != 1 %}s{% endif %}</p>
+  </div>
+</div>
+
+{% if not data %}
+<div class="card">
+  <div class="card-body tbl-empty">Aucun analyste actif.</div>
+</div>
+{% else %}
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Analyste</th>
+          <th>Rôle</th>
+          <th>Total actifs</th>
+          <th><span class="sev-badge sev-crit">critique</span></th>
+          <th><span class="sev-badge sev-high">élevé</span></th>
+          <th><span class="sev-badge sev-med">moyen</span></th>
+          <th><span class="sev-badge sev-low">faible</span></th>
+          <th>Résolus</th>
+          <th>Charge</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data %}
+        {% set u = row.user %}
+        <tr>
+          <td>
+            <div class="fw-700">{{ u.full_name }}</div>
+            <div class="fs-xs tc-muted">@{{ u.username }}</div>
+          </td>
+          <td><span class="sb-role-badge sb-role-{{ u.role }}">{{ u.role }}</span></td>
+          <td>
+            <span class="fw-700" style="font-size:1.05rem;color:{% if row.open > 5 %}var(--crit){% elif row.open > 2 %}var(--high){% else %}var(--text){% endif %}">
+              {{ row.open }}
+            </span>
+          </td>
+          <td class="tc-crit mono fw-700">{{ row.by_sev.critical or '—' }}</td>
+          <td class="tc-high mono fw-700">{{ row.by_sev.high or '—' }}</td>
+          <td style="color:var(--med)" class="mono fw-700">{{ row.by_sev.medium or '—' }}</td>
+          <td style="color:var(--low)" class="mono fw-700">{{ row.by_sev.low or '—' }}</td>
+          <td class="tc-muted mono">{{ row.resolved }}</td>
+          <td style="min-width:120px">
+            {% set pct = [row.open * 10, 100] | min %}
+            <div class="bar-track" style="height:8px">
+              <div class="bar-fill" data-pct="{{ pct }}" style="width:0;background:{% if row.open > 5 %}var(--crit){% elif row.open > 2 %}var(--high){% else %}var(--low){% endif %};height:8px;border-radius:4px"></div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-top:1.25rem">
+  {% for row in data %}
+  {% set u = row.user %}
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <span class="fw-700">{{ u.full_name }}</span>
+        <span class="sb-role-badge sb-role-{{ u.role }}" style="margin-left:.5rem">{{ u.role }}</span>
+      </div>
+      <span class="fs-sm tc-muted">@{{ u.username }}</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.82rem">
+        <div style="padding:.5rem;background:var(--surface2);border-radius:6px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:{% if row.open > 5 %}var(--crit){% else %}var(--text){% endif %}">{{ row.open }}</div>
+          <div class="tc-muted">Incidents actifs</div>
+        </div>
+        <div style="padding:.5rem;background:var(--surface2);border-radius:6px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:var(--accent)">{{ row.resolved }}</div>
+          <div class="tc-muted">Résolus</div>
+        </div>
+      </div>
+
+      {% if row.open > 0 %}
+      <div style="margin-top:.75rem">
+        {% for sev, color in [('critical','var(--crit)'),('high','var(--high)'),('medium','var(--med)'),('low','var(--low)')] %}
+        {% if row.by_sev[sev] > 0 %}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.2rem 0;font-size:.78rem">
+          <span style="color:{{ color }}">{{ sev | capitalize }}</span>
+          <span style="color:{{ color }};font-weight:700">{{ row.by_sev[sev] }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="fs-sm tc-muted" style="margin-top:.75rem;text-align:center">Aucun incident actif ✓</p>
+      {% endif %}
+
+      <div style="margin-top:.75rem">
+        <a href="{{ url_for('incidents') }}?assigned=me" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">Voir les incidents</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

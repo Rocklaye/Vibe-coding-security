@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Quittance {{ pmt.period_label }} — {{ pmt.lease.property.title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body style="background:#f0f2f5">
+
+<!-- Print button -->
+<div class="no-print" style="text-align:center;padding:1.5rem 0">
+  <button onclick="window.print()" class="btn btn-primary btn-lg">&#128438; Imprimer / Enregistrer en PDF</button>
+  <a href="javascript:history.back()" class="btn btn-ghost btn-lg" style="margin-left:.75rem">&#8592; Retour</a>
+</div>
+
+<div class="receipt-wrap">
+  <div class="receipt-paper">
+
+    <!-- Header -->
+    <div class="receipt-header">
+      <div>
+        <div class="receipt-logo">&#127968; GestImmo</div>
+        <div class="receipt-num">N° {{ pmt.receipt_number }}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.82rem;color:var(--text-muted)">Date d'émission</div>
+        <div style="font-weight:700">{{ pmt.created_at.strftime('%d/%m/%Y') }}</div>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="receipt-title">Quittance de loyer</div>
+    <div style="text-align:center;margin-top:-.75rem;margin-bottom:1.75rem;color:var(--text-muted);font-size:.88rem">
+      Période : <strong>{{ pmt.period_label }}</strong>
+    </div>
+
+    <!-- Parties -->
+    <div class="receipt-parties">
+      <div>
+        <div class="receipt-party-label">Bailleur (propriétaire)</div>
+        <div class="receipt-party-name">{{ owner.full_name }}</div>
+        {% if owner.address %}<div class="receipt-party-sub">{{ owner.address }}</div>{% endif %}
+        <div class="receipt-party-sub">{{ owner.email }}</div>
+        {% if owner.phone %}<div class="receipt-party-sub">{{ owner.phone }}</div>{% endif %}
+      </div>
+      <div>
+        <div class="receipt-party-label">Locataire</div>
+        <div class="receipt-party-name">{{ pmt.lease.tenant.full_name }}</div>
+        {% if pmt.lease.tenant.address %}<div class="receipt-party-sub">{{ pmt.lease.tenant.address }}</div>{% endif %}
+        <div class="receipt-party-sub">{{ pmt.lease.tenant.email }}</div>
+      </div>
+    </div>
+
+    <!-- Property -->
+    <div style="background:#f8fafc;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.75rem">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:.4rem">Bien loué</div>
+      <div style="font-weight:700;font-size:1rem">{{ pmt.lease.property.title }}</div>
+      <div style="color:var(--text-muted);font-size:.85rem">
+        {{ pmt.lease.property.address }}, {{ pmt.lease.property.postal_code }} {{ pmt.lease.property.city }}
+      </div>
+    </div>
+
+    <!-- Amount -->
+    <div class="receipt-amount-box">
+      <div class="receipt-amount-label">Montant reçu</div>
+      <div class="receipt-amount-value">{{ pmt.amount | eur }}</div>
+    </div>
+
+    <!-- Details -->
+    <div class="receipt-details">
+      <div class="receipt-row">
+        <span class="receipt-row-key">Loyer hors charges</span>
+        <span class="receipt-row-val">{{ pmt.lease.rent_amount | eur }}</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-row-key">Provisions pour charges</span>
+        <span class="receipt-row-val">{{ pmt.lease.charges | eur }}</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-row-key">Total charges comprises</span>
+        <span class="receipt-row-val" style="font-size:1rem;font-weight:800;color:var(--primary)">{{ pmt.lease.total_rent | eur }}</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-row-key">Date de paiement</span>
+        <span class="receipt-row-val">{{ pmt.payment_date | dfr }}</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-row-key">Mode de paiement</span>
+        <span class="receipt-row-val">{{ pmt.method | capitalize }}</span>
+      </div>
+      {% if pmt.reference %}
+      <div class="receipt-row">
+        <span class="receipt-row-key">Référence</span>
+        <span class="receipt-row-val">{{ pmt.reference }}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Legal text -->
+    <div class="receipt-footer">
+      <p>Je soussigné(e) <strong>{{ owner.full_name }}</strong>, propriétaire du logement désigné ci-dessus,
+      déclare avoir reçu de <strong>{{ pmt.lease.tenant.full_name }}</strong> la somme de
+      <strong>{{ pmt.amount | eur }}</strong> au titre du loyer et des charges du mois de
+      <strong>{{ pmt.period_label }}</strong>, et lui en donne quittance, sous réserve de tous mes droits.</p>
+    </div>
+
+    <!-- Signature -->
+    <div class="receipt-signature">
+      <div>Fait le {{ pmt.created_at.strftime('%d/%m/%Y') }}</div>
+      <div style="margin-top:2rem;border-top:1px solid var(--border);padding-top:.5rem;display:inline-block;min-width:200px">
+        Signature du bailleur
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}État des lieux — {{ insp.lease.property.title }}{% endblock %}
+
+{% block content %}
+<div class="page-hd">
+  <div>
+    <h1 class="page-title">
+      État des lieux {% if insp.inspection_type == 'entree' %}d'entrée{% else %}de sortie{% endif %}
+    </h1>
+    <p class="page-sub">{{ insp.lease.property.title }} — {{ insp.date | dfr }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn btn-ghost no-print">&#128438; Imprimer</button>
+    <a href="{{ url_for('owner_inspections') }}" class="btn btn-ghost no-print">&#8592; Retour</a>
+  </div>
+</div>
+
+<div class="detail-layout">
+  <div>
+    <!-- Main info card -->
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-hd">
+        <span class="card-title">Informations</span>
+        {% if insp.inspection_type == 'entree' %}
+          <span class="badge badge-success">Entrée dans les lieux</span>
+        {% else %}
+          <span class="badge badge-warning">Sortie des lieux</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-row"><span class="info-key">Bien</span><span class="info-val">{{ insp.lease.property.title }}</span></div>
+          <div class="info-row"><span class="info-key">Adresse</span><span class="info-val">{{ insp.lease.property.address }}, {{ insp.lease.property.city }}</span></div>
+          <div class="info-row"><span class="info-key">Locataire</span><span class="info-val">{{ insp.lease.tenant.full_name }}</span></div>
+          <div class="info-row"><span class="info-key">Date</span><span class="info-val">{{ insp.date | dfr }}</span></div>
+          <div class="info-row">
+            <span class="info-key">État général</span>
+            <span class="info-val">
+              {% if insp.general_condition == 'bon' %}
+                <span class="badge badge-success">Bon état</span>
+              {% elif insp.general_condition == 'moyen' %}
+                <span class="badge badge-warning">État moyen</span>
+              {% else %}
+                <span class="badge badge-danger">Mauvais état</span>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+
+        {% if insp.notes %}
+        <div style="margin-top:1rem;padding:1rem;background:#f8fafc;border-radius:6px">
+          <div class="section-title" style="margin-bottom:.5rem">Observations</div>
+          <p style="font-size:.875rem;white-space:pre-line;line-height:1.65">{{ insp.notes }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Photos -->
+    {% if insp.photos %}
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">&#128247; Photos ({{ insp.photos | length }})</span>
+      </div>
+      <div class="card-body">
+        <div class="insp-photo-grid">
+          {% for ph in insp.photos %}
+          <div class="insp-photo-item">
+            <a href="{{ url_for('uploaded_file', filename=ph.filename) }}" target="_blank">
+              <img src="{{ url_for('uploaded_file', filename=ph.filename) }}" alt="{{ ph.caption }}">
+            </a>
+            {% if ph.caption %}
+            <div class="insp-photo-caption">{{ ph.caption }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="card-body" style="text-align:center;color:var(--text-muted);padding:2rem">
+        Aucune photo jointe à cet état des lieux.
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right column -->
+  <div>
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Bail associé</span></div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-row"><span class="info-key">Début</span><span class="info-val">{{ insp.lease.start_date | dfr }}</span></div>
+          <div class="info-row"><span class="info-key">Fin</span><span class="info-val">{{ insp.lease.end_date | dfr if insp.lease.end_date else '—' }}</span></div>
+          <div class="info-row"><span class="info-key">Loyer CC</span><span class="info-val fw-bold">{{ insp.lease.total_rent | eur }}</span></div>
+          <div class="info-row"><span class="info-key">Statut bail</span>
+            <span class="info-val">
+              <span class="badge badge-{{ 'success' if insp.lease.status == 'active' else 'muted' }}">{{ insp.lease.status }}</span>
+            </span>
+          </div>
+        </div>
+        <div style="margin-top:1rem">
+          <a href="{{ url_for('property_detail', prop_id=insp.lease.property.id) }}" class="btn btn-ghost btn-sm">Voir le bien</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
