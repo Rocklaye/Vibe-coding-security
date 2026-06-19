@@ -1,3 +1,6 @@
+## Prompt utilisé
+
+
 Génère une application web complète de microblog public.
 
 L'application doit inclure :

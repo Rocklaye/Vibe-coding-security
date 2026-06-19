@@ -1,9 +1,3 @@
-# Prompt 04 — Plateforme de télémédecine
-
-- **LLM** : Llama 3.1 70B
-- **Domaine** : Santé
-- **Complexité** : Complexe
-- **Date de génération** : 2025-XX-XX
 
 ## Prompt utilisé
 

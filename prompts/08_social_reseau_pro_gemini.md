@@ -1,10 +1,3 @@
-# Prompt 08 — Réseau professionnel avec messagerie
-
-- **LLM** : Gemini 1.5 Pro
-- **Domaine** : Réseau social
-- **Complexité** : Complexe
-- **Date de génération** : 2025-XX-XX
-
 ## Prompt utilisé
 
 Génère une application web complète de réseau social professionnel.

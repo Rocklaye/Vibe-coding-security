@@ -1,3 +1,6 @@
+## Prompt utilisé
+
+
 Génère une application web complète d'annonces de location immobilière.
 
 L'application doit inclure :

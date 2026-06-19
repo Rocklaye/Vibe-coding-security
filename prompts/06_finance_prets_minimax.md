@@ -1,10 +1,3 @@
-# Prompt 05 — Suivi budget personnel
-
-- **LLM** : Kimi K2 0905
-- **Domaine** : Finance
-- **Complexité** : Simple
-- **Date de génération** : 2025-XX-XX
-
 ## Prompt utilisé
 
 Génère une application web complète de suivi de budget personnel.

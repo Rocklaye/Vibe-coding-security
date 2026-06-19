@@ -1,4 +1,6 @@
-Prompt 1 :  Claude (Dossier médical patient)
+## Prompt utilisé
+
+
 Génère une application web complète de gestion de dossiers médicaux patients.
 
 L'application doit inclure :

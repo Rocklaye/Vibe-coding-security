@@ -1,3 +1,6 @@
+## Prompt utilisé
+
+
 Génère une application web complète de gestion locative immobilière.
 
 L'application doit inclure :
