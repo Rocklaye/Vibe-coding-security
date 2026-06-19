@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Prendre rendez-vous - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0"><i class="bi bi-calendar-plus me-2"></i>Prendre un rendez-vous</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('prendre_rendezvous') }}" id="rdvForm">
+                        <!-- Choix du médecin -->
+                        <div class="mb-4">
+                            <label for="medecin_id" class="form-label fw-bold">
+                                <i class="bi bi-person-badge me-1"></i>Choisir un médecin *
+                            </label>
+                            <select class="form-select form-select-lg" id="medecin_id" name="medecin_id" required>
+                                <option value="">Sélectionnez un médecin...</option>
+                                {% for medecin in medecins %}
+                                    <option value="{{ medecin.id }}" data-specialite="{{ medecin.specialite }}">
+                                        Dr. {{ medecin.prenom }} {{ medecin.nom }} - {{ medecin.specialite }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="mb-4">
+                            <label for="date" class="form-label fw-bold">
+                                <i class="bi bi-calendar me-1"></i>Date du rendez-vous *
+                            </label>
+                            <input type="date" class="form-control form-control-lg" id="date" name="date" 
+                                   min="{{ today }}" required>
+                        </div>
+
+                        <!-- Créneau horaire -->
+                        <div class="mb-4">
+                            <label for="heure" class="form-label fw-bold">
+                                <i class="bi bi-clock me-1"></i>Créneau horaire *
+                            </label>
+                            <select class="form-select form-select-lg" id="heure" name="heure" required disabled>
+                                <option value="">Choisissez d'abord un médecin et une date...</option>
+                            </select>
+                            <div class="form-text" id="creneaux-info"></div>
+                        </div>
+
+                        <!-- Motif -->
+                        <div class="mb-4">
+                            <label for="motif" class="form-label fw-bold">
+                                <i class="bi bi-chat-left-text me-1"></i>Motif de la consultation *
+                            </label>
+                            <textarea class="form-control" id="motif" name="motif" rows="3" 
+                                      placeholder="Décrivez brièvement le motif de votre consultation..." required></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                                <i class="bi bi-check-circle me-2"></i>Confirmer le rendez-vous
+                            </button>
+                            <a href="{{ url_for('patient_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Retour
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Définir la date minimale à aujourd'hui
+document.getElementById('date').min = new Date().toISOString().split('T')[0];
+
+const medecinSelect = document.getElementById('medecin_id');
+const dateInput = document.getElementById('date');
+const heureSelect = document.getElementById('heure');
+const submitBtn = document.getElementById('submitBtn');
+const creneauxInfo = document.getElementById('creneaux-info');
+
+function loadCreneaux() {
+    const medecinId = medecinSelect.value;
+    const date = dateInput.value;
+    
+    if (medecinId && date) {
+        heureSelect.disabled = true;
+        heureSelect.innerHTML = '<option>Chargement des créneaux...</option>';
+        
+        fetch(`/api/creneaux/${medecinId}/${date}`)
+            .then(response => response.json())
+            .then(creneaux => {
+                heureSelect.innerHTML = '';
+                
+                if (creneaux.length === 0) {
+                    heureSelect.innerHTML = '<option value="">Aucun créneau disponible</option>';
+                    creneauxInfo.textContent = 'Tous les créneaux sont réservés pour cette date. Veuillez choisir une autre date.';
+                    submitBtn.disabled = true;
+                } else {
+                    heureSelect.innerHTML = '<option value="">Choisir un créneau...</option>';
+                    creneaux.forEach(creneau => {
+                        const option = document.createElement('option');
+                        option.value = creneau;
+                        option.textContent = creneau;
+                        heureSelect.appendChild(option);
+                    });
+                    heureSelect.disabled = false;
+                    creneauxInfo.textContent = `${creneaux.length} créneau(x) disponible(s)`;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                heureSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+            });
+    }
+}
+
+medecinSelect.addEventListener('change', loadCreneaux);
+dateInput.addEventListener('change', loadCreneaux);
+
+heureSelect.addEventListener('change', function() {
+    submitBtn.disabled = !this.value;
+});
+
+// Validation du formulaire
+document.getElementById('rdvForm').addEventListener('submit', function(e) {
+    if (!medecinSelect.value || !dateInput.value || !heureSelect.value || !document.getElementById('motif').value.trim()) {
+        e.preventDefault();
+        alert('Veuillez remplir tous les champs obligatoires.');
+    }
+});
+</script>
+{% endblock %}

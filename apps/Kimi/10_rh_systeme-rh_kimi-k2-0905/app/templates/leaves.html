@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}Congés - HR Manager{% endblock %}
+{% block page_title %}Gestion des Congés{% endblock %}
+
+{% block content %}
+<div class="leaves-page">
+    <!-- Summary Cards -->
+    <div class="kpi-grid kpi-grid-4">
+        <div class="kpi-card kpi-small">
+            <div class="kpi-icon kpi-blue">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="balanceAnnual">-</h3>
+                <p>Solde congés annuels</p>
+            </div>
+        </div>
+        <div class="kpi-card kpi-small">
+            <div class="kpi-icon kpi-green">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="approvedCount">-</h3>
+                <p>Approuvés cette année</p>
+            </div>
+        </div>
+        <div class="kpi-card kpi-small">
+            <div class="kpi-icon kpi-orange">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="pendingCount">-</h3>
+                <p>En attente</p>
+            </div>
+        </div>
+        <div class="kpi-card kpi-small">
+            <div class="kpi-icon kpi-red">
+                <i class="fas fa-heart"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="sickCount">-</h3>
+                <p>Maladies cette année</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <select id="filterLeaveStatus" onchange="loadLeaves()">
+                <option value="">Tous les statuts</option>
+                <option value="pending">En attente</option>
+                <option value="approved">Approuvé</option>
+                <option value="rejected">Rejeté</option>
+            </select>
+        </div>
+        <div class="toolbar-right">
+            <button class="btn btn-primary" onclick="showLeaveModal()">
+                <i class="fas fa-plus"></i> Nouvelle demande
+            </button>
+        </div>
+    </div>
+    
+    <!-- Leaves Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive" id="leavesTableContainer">
+                <p class="text-center text-muted">Chargement des demandes de congés...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Demande de congé -->
+<div class="modal-overlay" id="leaveModalOverlay"></div>
+<div class="modal" id="leaveModal">
+    <div class="modal-header">
+        <h3 class="modal-title">Nouvelle demande de congé</h3>
+        <button class="modal-close" onclick="closeLeaveModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <form id="leaveForm">
+            <div class="form-group">
+                <label for="leaveType">Type de congé *</label>
+                <select id="leaveType" name="leave_type" required>
+                    <option value="annual">Congés payés</option>
+                    <option value="sick">Maladie</option>
+                    <option value="unpaid">Sans solde</option>
+                    <option value="maternity">Maternité</option>
+                    <option value="paternity">Paternité</option>
+                    <option value="rtt">RTT</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="leaveStart">Date de début *</label>
+                    <input type="date" id="leaveStart" name="start_date" required>
+                </div>
+                <div class="form-group col-6">
+                    <label for="leaveEnd">Date de fin *</label>
+                    <input type="date" id="leaveEnd" name="end_date" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="leaveReason">Motif</label>
+                <textarea id="leaveReason" name="reason" rows="3" placeholder="Expliquez le motif de votre absence..."></textarea>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeLeaveModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="submitLeave()">
+            <i class="fas fa-paper-plane"></i> Soumettre
+        </button>
+    </div>
+</div>
+
+<!-- Modal Rejet -->
+<div class="modal-overlay" id="rejectModalOverlay"></div>
+<div class="modal" id="rejectModal">
+    <div class="modal-header">
+        <h3 class="modal-title">Rejeter la demande</h3>
+        <button class="modal-close" onclick="closeRejectModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <form id="rejectForm">
+            <input type="hidden" id="rejectLeaveId">
+            <div class="form-group">
+                <label for="rejectReason">Motif du rejet *</label>
+                <textarea id="rejectReason" rows="3" required placeholder="Expliquez pourquoi cette demande est rejetée..."></textarea>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeRejectModal()">Annuler</button>
+        <button class="btn btn-danger" onclick="confirmReject()">
+            <i class="fas fa-times"></i> Rejeter
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentLeaveId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadLeaves();
+    loadBalance();
+});
+
+async function loadLeaves() {
+    try {
+        const status = document.getElementById('filterLeaveStatus').value;
+        const url = status ? `/api/leaves?status=${status}` : '/api/leaves';
+        const response = await fetch(url);
+        const leaves = await response.json();
+        
+        // Compter
+        const approved = leaves.filter(l => l.status === 'approved').length;
+        const pending = leaves.filter(l => l.status === 'pending').length;
+        document.getElementById('approvedCount').textContent = approved;
+        document.getElementById('pendingCount').textContent = pending;
+        
+        renderLeavesTable(leaves);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function loadBalance() {
+    try {
+        const response = await fetch('/api/leaves/balance');
+        const balances = await response.json();
+        
+        const annual = balances.find(b => b.leave_type === 'annual');
+        document.getElementById('balanceAnnual').textContent = annual ? annual.remaining_days + 'j' : '-';
+        
+        // Compter maladies
+        const response2 = await fetch('/api/leaves');
+        const leaves = await response2.json();
+        const sickCount = leaves.filter(l => l.leave_type === 'sick' && l.status === 'approved').length;
+        document.getElementById('sickCount').textContent = sickCount;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderLeavesTable(leaves) {
+    const container = document.getElementById('leavesTableContainer');
+    
+    if (leaves.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted">Aucune demande de congé</p>';
+        return;
+    }
+    
+    const userRole = document.getElementById('userRole').textContent;
+    
+    container.innerHTML = `
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Employé</th>
+                    <th>Type</th>
+                    <th>Période</th>
+                    <th>Jours</th>
+                    <th>Motif</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${leaves.map(l => `
+                    <tr>
+                        <td><strong>${l.employee_name}</strong></td>
+                        <td>${formatLeaveType(l.leave_type)}</td>
+                        <td>${formatDate(l.start_date)} - ${formatDate(l.end_date)}</td>
+                        <td>${l.days_requested}</td>
+                        <td><small>${l.reason || '-'}</small></td>
+                        <td><span class="badge badge-${l.status}">${formatStatus(l.status)}</span></td>
+                        <td>
+                            ${l.status === 'pending' && (userRole === 'manager' || userRole === 'admin' || userRole === 'hr') ? `
+                                <button class="btn btn-sm btn-success" onclick="approveLeave(${l.id})" title="Approuver">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="showRejectModal(${l.id})" title="Rejeter">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function showLeaveModal() {
+    document.getElementById('leaveModal').classList.add('active');
+    document.getElementById('leaveModalOverlay').classList.add('active');
+}
+
+function closeLeaveModal() {
+    document.getElementById('leaveModal').classList.remove('active');
+    document.getElementById('leaveModalOverlay').classList.remove('active');
+    document.getElementById('leaveForm').reset();
+}
+
+async function submitLeave() {
+    const form = document.getElementById('leaveForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => data[key] = value);
+    
+    try {
+        const response = await fetch('/api/leaves', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            showNotification('Demande soumise avec succès', 'success');
+            closeLeaveModal();
+            loadLeaves();
+            loadBalance();
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
+async function approveLeave(id) {
+    try {
+        const response = await fetch(`/api/leaves/${id}/approve`, { method: 'POST' });
+        if (response.ok) {
+            showNotification('Congé approuvé', 'success');
+            loadLeaves();
+            loadBalance();
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
+function showRejectModal(id) {
+    currentLeaveId = id;
+    document.getElementById('rejectModal').classList.add('active');
+    document.getElementById('rejectModalOverlay').classList.add('active');
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').classList.remove('active');
+    document.getElementById('rejectModalOverlay').classList.remove('active');
+    document.getElementById('rejectForm').reset();
+}
+
+async function confirmReject() {
+    const reason = document.getElementById('rejectReason').value;
+    if (!reason) {
+        showNotification('Veuillez indiquer un motif', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/leaves/${currentLeaveId}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason })
+        });
+        
+        if (response.ok) {
+            showNotification('Demande rejetée', 'success');
+            closeRejectModal();
+            loadLeaves();
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+</script>
+{% endblock %}

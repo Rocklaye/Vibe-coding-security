@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Shipment</title>
+</head>
+<body>
+    <h1>Create Shipment</h1>
+    <p>Enter the tracking number for your shipment:</p>
+    {{ form.hidden_tag() }}
+    {{ form.tracking_number.label }} {{ form.tracking_number }}
+    {{ form.submit }}
+</body>
+</html>

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Prescription du {{ prescription.date }} - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning bg-opacity-10 py-4 text-center">
+                    <i class="bi bi-file-medical text-warning" style="font-size: 3rem;"></i>
+                    <h4 class="mt-2 mb-0">Ordonnance Électronique</h4>
+                    <small class="text-muted">TeleMed - Télémédecine</small>
+                </div>
+                <div class="card-body p-4">
+                    <!-- En-tête de l'ordonnance -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Médecin prescripteur</h6>
+                            <p class="mb-1 fw-bold">Dr. {{ prescription.medecin_prenom }} {{ prescription.medecin_nom }}</p>
+                            <p class="mb-1 text-muted">{{ prescription.specialite }}</p>
+                            <p class="mb-0"><i class="bi bi-telephone me-1"></i>Contact via TeleMed</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h6 class="text-muted mb-2">Date de prescription</h6>
+                            <p class="mb-1 fw-bold">{{ prescription.date }}</p>
+                            <p class="mb-0 text-muted">Référence: #PR-{{ prescription.id }}</p>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Patient -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Patient</h6>
+                        <p class="mb-0 fw-medium">{{ prescription.patient_prenom }} {{ prescription.patient_nom }}</p>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Contenu de l'ordonnance -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-capsule me-2"></i>Médicaments prescrits</h6>
+                        <div class="p-3 bg-light rounded">
+                            <p class="mb-0" style="white-space: pre-line;">{{ prescription.medicaments }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Posologie</h6>
+                            <p class="mb-0">{{ prescription.posologie }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Durée du traitement</h6>
+                            <p class="mb-0"><span class="badge bg-info">{{ prescription.duree }}</span></p>
+                        </div>
+                    </div>
+
+                    {% if prescription.instructions %}
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-2"><i class="bi bi-exclamation-triangle me-2"></i>Instructions particulières</h6>
+                            <div class="p-3 bg-warning bg-opacity-10 rounded border border-warning border-opacity-25">
+                                <p class="mb-0">{{ prescription.instructions }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <!-- Pied de page -->
+                    <div class="text-center text-muted">
+                        <p class="mb-1 small">Cette ordonnance électronique a été générée via la plateforme TeleMed.</p>
+                        <p class="mb-0 small">Elle est valable conformément à la législation en vigueur.</p>
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('liste_prescriptions') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Retour
+                        </a>
+                        <button class="btn btn-warning" onclick="window.print()">
+                            <i class="bi bi-printer me-2"></i>Imprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

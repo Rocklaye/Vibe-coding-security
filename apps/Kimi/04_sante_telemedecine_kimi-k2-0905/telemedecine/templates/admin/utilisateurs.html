@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des utilisateurs - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-people me-2 text-primary"></i>Gestion des utilisateurs
+        </h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </a>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('admin_utilisateurs') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Rechercher</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" name="search" value="{{ search }}" 
+                               placeholder="Nom, prénom ou email...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Rôle</label>
+                    <select class="form-select" name="role">
+                        <option value="">Tous les rôles</option>
+                        <option value="patient" {% if role_filter == 'patient' %}selected{% endif %}>Patient</option>
+                        <option value="medecin" {% if role_filter == 'medecin' %}selected{% endif %}>Médecin</option>
+                        <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Administrateur</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-funnel me-2"></i>Filtrer
+                    </button>
+                    <a href="{{ url_for('admin_utilisateurs') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des utilisateurs -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            {% if utilisateurs %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Téléphone</th>
+                                <th>Rôle</th>
+                                <th>Spécialité</th>
+                                <th>Statut</th>
+                                <th>Inscription</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in utilisateurs %}
+                                <tr class="{{ 'table-secondary' if user.active == 0 }}">
+                                    <td>{{ user.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle-sm me-2">{{ user.prenom[0] }}{{ user.nom[0] }}</div>
+                                            {{ user.prenom }} {{ user.nom }}
+                                        </div>
+                                    </td>
+                                    <td><small>{{ user.email }}</small></td>
+                                    <td><small>{{ user.telephone or '-' }}</small></td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'info' if user.role == 'medecin' else 'success' }}">
+                                            {{ user.role }}
+                                        </span>
+                                    </td>
+                                    <td><small>{{ user.specialite or '-' }}</small></td>
+                                    <td>
+                                        {% if user.active == 1 %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small>{{ user.created_at }}</small></td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <form method="POST" action="{{ url_for('toggle_utilisateur', id=user.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-{{ 'success' if user.active == 0 else 'warning' }}" 
+                                                        title="{{ 'Activer' if user.active == 0 else 'Désactiver' }}"
+                                                        onclick="return confirm('{{ 'Activer' if user.active == 0 else 'Désactiver' }} cet utilisateur ?')">
+                                                    <i class="bi bi-{{ 'check-circle' if user.active == 0 else 'pause-circle' }}"></i>
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('supprimer_utilisateur', id=user.id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                        title="Supprimer"
+                                                        onclick="return confirm('Supprimer définitivement cet utilisateur ? Cette action est irréversible.')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
+                    <p class="text-muted mt-3">Aucun utilisateur trouvé</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

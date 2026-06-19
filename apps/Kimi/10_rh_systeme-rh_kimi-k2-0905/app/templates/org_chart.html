@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Organigramme - HR Manager{% endblock %}
+{% block page_title %}Organigramme de l'Entreprise{% endblock %}
+
+{% block content %}
+<div class="org-chart-page">
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-sitemap"></i> Structure organisationnelle</h3>
+            <div class="card-actions">
+                <button class="btn btn-sm btn-secondary" onclick="toggleView('tree')">
+                    <i class="fas fa-project-diagram"></i> Arborescence
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="toggleView('list')">
+                    <i class="fas fa-list"></i> Liste
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="orgChartTree" class="org-tree">
+                <p class="text-center text-muted">Chargement de l'organigramme...</p>
+            </div>
+            <div id="orgChartList" class="org-list" style="display: none;">
+                <p class="text-center text-muted">Chargement...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadOrgChart();
+});
+
+async function loadOrgChart() {
+    try {
+        const response = await fetch('/api/org-chart');
+        const data = await response.json();
+        
+        renderTreeView(data);
+        renderListView(data);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderTreeView(data) {
+    const employees = data.employees;
+    const departments = data.departments;
+    
+    // Trouver le DG (pas de manager ou manager = lui-même)
+    const ceo = employees.find(e => !e.manager_id || e.manager_id === e.id);
+    
+    if (!ceo) {
+        document.getElementById('orgChartTree').innerHTML = '<p class="text-muted">Aucune donnée</p>';
+        return;
+    }
+    
+    // Construire l'arbre
+    function buildTree(managerId, level = 0) {
+        const subordinates = employees.filter(e => e.manager_id === managerId && e.id !== managerId);
+        
+        if (subordinates.length === 0) return '';
+        
+        let html = '<ul class="org-tree-level">';
+        subordinates.forEach(emp => {
+            const dept = departments.find(d => d.name === emp.department);
+            html += `
+                <li>
+                    <div class="org-node">
+                        <img src="${emp.photo_url}&size=60" alt="${emp.name}" class="org-node-img">
+                        <div class="org-node-info">
+                            <strong>${emp.name}</strong>
+                            <span>${emp.title}</span>
+                            <small><i class="fas fa-building"></i> ${emp.department}</small>
+                        </div>
+                    </div>
+                    ${buildTree(emp.id, level + 1)}
+                </li>
+            `;
+        });
+        html += '</ul>';
+        return html;
+    }
+    
+    const treeHtml = `
+        <div class="org-tree-root">
+            <div class="org-node org-node-ceo">
+                <img src="${ceo.photo_url}&size=80" alt="${ceo.name}" class="org-node-img">
+                <div class="org-node-info">
+                    <strong>${ceo.name}</strong>
+                    <span>${ceo.title}</span>
+                    <small><i class="fas fa-building"></i> ${ceo.department}</small>
+                </div>
+            </div>
+            ${buildTree(ceo.id)}
+        </div>
+    `;
+    
+    document.getElementById('orgChartTree').innerHTML = treeHtml;
+}
+
+function renderListView(data) {
+    const employees = data.employees;
+    const departments = data.departments;
+    
+    // Grouper par département
+    const byDept = {};
+    departments.forEach(d => {
+        byDept[d.name] = employees.filter(e => e.department === d.name);
+    });
+    
+    let html = '';
+    for (const [deptName, emps] of Object.entries(byDept)) {
+        if (emps.length === 0) continue;
+        
+        html += `
+            <div class="dept-group">
+                <h4 class="dept-title"><i class="fas fa-building"></i> ${deptName}</h4>
+                <div class="dept-members">
+                    ${emps.map(emp => `
+                        <div class="dept-member">
+                            <img src="${emp.photo_url}&size=50" alt="${emp.name}">
+                            <div>
+                                <strong>${emp.name}</strong>
+                                <span>${emp.title}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('orgChartList').innerHTML = html || '<p class="text-muted">Aucune donnée</p>';
+}
+
+function toggleView(view) {
+    if (view === 'tree') {
+        document.getElementById('orgChartTree').style.display = 'block';
+        document.getElementById('orgChartList').style.display = 'none';
+    } else {
+        document.getElementById('orgChartTree').style.display = 'none';
+        document.getElementById('orgChartList').style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

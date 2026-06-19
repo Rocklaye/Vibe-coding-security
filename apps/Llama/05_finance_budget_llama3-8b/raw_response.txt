@@ -1,0 +1,200 @@
+Here is the complete and functional web application for personal budget tracking, as requested:
+
+**Backend**
+
+* **app.py**: The main Python file that handles requests and interacts with the database.
+```python
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+import os
+
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///budget.db"
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    category = db.Column(db.String(50))
+    amount = db.Column(db.Float)
+    date = db.Column(db.DateTime, default=datetime.now())
+
+@app.route("/register", methods=["POST"])
+def register():
+    username = request.form["username"]
+    password = request.form["password"]
+    user = User(username=username, password=password)
+    db.session.add(user)
+    db.session.commit()
+    return jsonify({"message": "User created successfully"})
+
+@app.route("/login", methods=["POST"])
+def login():
+    username = request.form["username"]
+    password = request.form["password"]
+    user = User.query.filter_by(username=username).first()
+    if user and user.password == password:
+        return jsonify({"token": generate_token(user.id)})
+    else:
+        return jsonify({"error": "Invalid credentials"}), 401
+
+@app.route("/transactions", methods=["POST"])
+def create_transaction():
+    category = request.form["category"]
+    amount = float(request.form["amount"])
+    date = datetime.strptime(request.form["date"], "%Y-%m-%d")
+    transaction = Transaction(category=category, amount=amount, date=date)
+    db.session.add(transaction)
+    db.session.commit()
+    return jsonify({"message": "Transaction created successfully"})
+
+@app.route("/transactions", methods=["GET"])
+def get_transactions():
+    transactions = Transaction.query.all()
+    return jsonify([{"id": t.id, "category": t.category, "amount": t.amount, "date": t.date.strftime("%Y-%m-%d")} for t in transactions])
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+* **requirements.txt**: The file that lists the required Python packages and their versions.
+```text
+flask==2.0.1
+flask_sqlalchemy==3.18.1
+sqlalchemy==1.4.25
+jinja2==3.0.3
+```
+**Frontend**
+
+* **index.html**: The main HTML file that handles user input and displays the budget tracking interface.
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Budget Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>Budget Tracker</h1>
+    <form id="register-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username"><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password"><br><br>
+        <input type="submit" value="Register">
+    </form>
+
+    <form id="login-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username"><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password"><br><br>
+        <input type="submit" value="Login">
+    </form>
+
+    <div id="transactions-list"></div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
+```
+* **script.js**: The JavaScript file that handles user input, makes API calls to the backend, and updates the UI.
+```javascript
+const apiUrl = "http://localhost:5000";
+
+document.getElementById("register-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    fetch(`${apiUrl}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+    })
+    .then((response) => response.json())
+    .then((data) => console.log(data))
+    .catch((error) => console.error(error));
+});
+
+document.getElementById("login-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    fetch(`${apiUrl}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+    })
+    .then((response) => response.json())
+    .then((data) => console.log(data))
+    .catch((error) => console.error(error));
+});
+
+document.getElementById("transactions-list").addEventListener("click", (e) => {
+    if (e.target.tagName === "LI") {
+        const transactionId = e.target.getAttribute("data-transaction-id");
+        fetch(`${apiUrl}/transactions/${transactionId}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        })
+        .then((response) => response.json())
+        .then((data) => console.log(data))
+        .catch((error) => console.error(error));
+    }
+});
+```
+**Database**
+
+* **budget.db**: The SQLite database file that stores user data and transactions.
+```sql
+-- Create the users table
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL
+);
+
+-- Create the transactions table
+CREATE TABLE IF NOT EXISTS transactions (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    amount REAL NOT NULL,
+    date DATE NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+**README.md**
+
+* The file that provides instructions for installing and running the application.
+```markdown
+# Budget Tracker
+
+## Installation
+
+1. Install Python 3.x using your package manager or by downloading it from the official website.
+2. Install Flask, Flask-SQLAlchemy, and SQLAlchemy using pip:
+   ```
+   pip install flask flask-sqlalchemy sqlalchemy
+   ```
+3. Create a new directory for the application and navigate into it.
+4. Clone this repository and run `git submodule update --init` to download the frontend code.
+5. Run `python app.py` to start the application.
+
+## Running the Application
+
+1. Open a web browser and navigate to `http://localhost:5000`.
+2. Register for an account by filling out the registration form.
+3. Log in using your username and password.
+4. Create new transactions by clicking the "Create Transaction" button.
+5. View your transaction history by clicking the "Transactions" tab.
+
+Note: This application uses SQLite as its database, so you don't need to set up a separate database server. However, if you want to use a different database system, you'll need to modify the `app.py` file accordingly.

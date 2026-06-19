@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes rendez-vous - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-calendar3 me-2 text-primary"></i>
+            {% if current_user.role == 'patient' %}Mes rendez-vous{% elif current_user.role == 'medecin' %}Rendez-vous patients{% else %}Tous les rendez-vous{% endif %}
+        </h2>
+        {% if current_user.role == 'patient' %}
+            <a href="{{ url_for('prendre_rendezvous') }}" class="btn btn-primary">
+                <i class="bi bi-calendar-plus me-2"></i>Prendre rendez-vous
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            {% if rendezvous %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Heure</th>
+                                {% if current_user.role in ['medecin', 'admin'] %}
+                                    <th>Patient</th>
+                                {% endif %}
+                                {% if current_user.role in ['patient', 'admin'] %}
+                                    <th>Médecin</th>
+                                    <th>Spécialité</th>
+                                {% endif %}
+                                <th>Motif</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rdv in rendezvous %}
+                                <tr>
+                                    <td>{{ rdv.date }}</td>
+                                    <td>{{ rdv.heure }}</td>
+                                    {% if current_user.role in ['medecin', 'admin'] %}
+                                        <td>{{ rdv.patient_prenom }} {{ rdv.patient_nom }}</td>
+                                    {% endif %}
+                                    {% if current_user.role in ['patient', 'admin'] %}
+                                        <td>Dr. {{ rdv.medecin_prenom }} {{ rdv.medecin_nom }}</td>
+                                        <td><span class="badge bg-info bg-opacity-10 text-info">{{ rdv.specialite }}</span></td>
+                                    {% endif %}
+                                    <td><small>{{ rdv.motif }}</small></td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if rdv.statut == 'confirme' else 'warning text-dark' if rdv.statut == 'en_attente' else 'danger' if rdv.statut == 'annule' else 'secondary' }}">
+                                            {% if rdv.statut == 'confirme' %}Confirmé
+                                            {% elif rdv.statut == 'en_attente' %}En attente
+                                            {% elif rdv.statut == 'annule' %}Annulé
+                                            {% elif rdv.statut == 'termine' %}Terminé
+                                            {% else %}{{ rdv.statut }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            {% if rdv.statut == 'en_attente' and current_user.role in ['medecin', 'admin'] %}
+                                                <form method="POST" action="{{ url_for('confirmer_rendezvous', id=rdv.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-success" title="Confirmer">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            {% if rdv.statut in ['en_attente', 'confirme'] %}
+                                                <form method="POST" action="{{ url_for('annuler_rendezvous', id=rdv.id) }}" class="d-inline" onsubmit="return confirm('Annuler ce rendez-vous ?')">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Annuler">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            {% if rdv.statut == 'confirme' and current_user.role == 'medecin' %}
+                                                <a href="{{ url_for('demarrer_consultation', rendezvous_id=rdv.id) }}" class="btn btn-sm btn-primary" title="Démarrer la consultation">
+                                                    <i class="bi bi-camera-video"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+                    <p class="text-muted mt-3">Aucun rendez-vous trouvé</p>
+                    {% if current_user.role == 'patient' %}
+                        <a href="{{ url_for('prendre_rendezvous') }}" class="btn btn-primary">
+                            <i class="bi bi-calendar-plus me-2"></i>Prendre mon premier rendez-vous
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

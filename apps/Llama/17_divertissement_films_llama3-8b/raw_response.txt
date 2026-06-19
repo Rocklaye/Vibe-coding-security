@@ -1,0 +1,294 @@
+**Application Web de Bibliothèque de Films et Séries**
+
+**Technologies utilisées :**
+
+* Langage : Python 3.9
+* Framework web : Flask 2.0.1
+* Base de données : SQLite 3.32.3
+* Template engine : Jinja2 2.11.3
+* Bibliothèque de gestion des templates : WTForms 2.4.0
+
+**Fichiers**
+
+**requirements.txt**
+```
+flask==2.0.1
+sqlite3==3.32.3
+jinja2==2.11.3
+wtforms==2.4.0
+```
+
+**package.json** (non utilisé, car nous utilisons Python)
+```json
+{
+  "name": "film_library",
+  "version": "1.0.0",
+  "dependencies": {
+    "flask": "^2.0.1",
+    "sqlite3": "^3.32.3",
+    "jinja2": "^2.11.3",
+    "wtforms": "^2.4.0"
+  }
+}
+```
+
+**README.md**
+```markdown
+Installation et lancement de l'application :
+
+1. Installer les dépendances avec la commande : `pip install -r requirements.txt`
+2. Lancer l'application avec la commande : `flask run`
+3. Accéder à l'application en visitant l'URL : http://localhost:5000
+
+Initialisation de la base de données :
+
+1. Exécuter la commande : `python db_init.py`
+
+Note : Assurez-vous d'avoir Python 3.9 installé sur votre ordinateur pour que l'application fonctionne correctement.
+```
+
+**Fichiers du projet**
+
+**app.py**
+```python
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from wtforms import Form, StringField, FloatField, BooleanField
+from wtforms.validators import DataRequired
+
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///film_library.db"
+db = SQLAlchemy(app)
+
+class Film(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    genre = db.Column(db.String(50), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Float, nullable=False)
+
+class Serie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    genre = db.Column(db.String(50), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Float, nullable=False)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+@app.route("/")
+def index():
+    films = Film.query.all()
+    series = Serie.query.all()
+    return render_template("index.html", films=films, series=series)
+
+@app.route("/search", methods=["GET"])
+def search():
+    query = request.args.get("query")
+    if query:
+        films = Film.query.filter(Film.title.like(f"%{query}%")).all()
+        series = Serie.query.filter(Serie.title.like(f"%{query}%")).all()
+        return render_template("search.html", films=films, series=series)
+    else:
+        return redirect(url_for("index"))
+
+@app.route("/favorites", methods=["GET"])
+def favorites():
+    user_id = request.args.get("user_id")
+    if user_id:
+        user = User.query.get(user_id)
+        if user:
+            favorite_films = Film.query.join(Favorite, Film.id == Favorite.film_id).filter_by(user_id=user_id).all()
+            favorite_series = Serie.query.join(Favorite, Serie.id == Favorite.serie_id).filter_by(user_id=user_id).all()
+            return render_template("favorites.html", films=favorite_films, series=favorite_series)
+    else:
+        return redirect(url_for("index"))
+
+@app.route("/add_film", methods=["POST"])
+def add_film():
+    title = request.form["title"]
+    genre = request.form["genre"]
+    year = int(request.form["year"])
+    rating = float(request.form["rating"])
+    film = Film(title=title, genre=genre, year=year, rating=rating)
+    db.session.add(film)
+    db.session.commit()
+    return redirect(url_for("index"))
+
+@app.route("/add_serie", methods=["POST"])
+def add_serie():
+    title = request.form["title"]
+    genre = request.form["genre"]
+    year = int(request.form["year"])
+    rating = float(request.form["rating"])
+    serie = Serie(title=title, genre=genre, year=year, rating=rating)
+    db.session.add(serie)
+    db.session.commit()
+    return redirect(url_for("index"))
+
+@app.route("/add_favori", methods=["POST"])
+def add_favori():
+    user_id = int(request.form["user_id"])
+    film_id = int(request.form["film_id"])
+    serie_id = int(request.form["serie_id"])
+    favorite = Favorite(user_id=user_id, film_id=film_id)
+    db.session.add(favorite)
+    db.session.commit()
+    return redirect(url_for("index"))
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+**db_init.py**
+```python
+from app import db
+
+def init_db():
+    db.create_all()
+
+if __name__ == "__main__":
+    init_db()
+```
+
+**templates/index.html**
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Film Library</title>
+  </head>
+  <body>
+    <h1>Film Library</h1>
+    <ul>
+      {% for film in films %}
+        <li>{{ film.title }} ({{ film.genre }}, {{ film.year }}, {{ film.rating }})</li>
+      {% endfor %}
+    </ul>
+    <ul>
+      {% for serie in series %}
+        <li>{{ serie.title }} ({{ serie.genre }}, {{ serie.year }}, {{ serie.rating }})</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
+```
+
+**templates/search.html**
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Search Results</title>
+  </head>
+  <body>
+    <h1>Search Results</h1>
+    <ul>
+      {% for film in films %}
+        <li>{{ film.title }} ({{ film.genre }}, {{ film.year }}, {{ film.rating }})</li>
+      {% endfor %}
+    </ul>
+    <ul>
+      {% for serie in series %}
+        <li>{{ serie.title }} ({{ serie.genre }}, {{ serie.year }}, {{ serie.rating }})</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
+```
+
+**templates/favorites.html**
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Favorites</title>
+  </head>
+  <body>
+    <h1>Favorites</h1>
+    <ul>
+      {% for film in films %}
+        <li>{{ film.title }} ({{ film.genre }}, {{ film.year }}, {{ film.rating }})</li>
+      {% endfor %}
+    </ul>
+    <ul>
+      {% for serie in series %}
+        <li>{{ serie.title }} ({{ serie.genre }}, {{ serie.year }}, {{ serie.rating }})</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
+```
+
+**models.py**
+```python
+from app import db
+
+class Film(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    genre = db.Column(db.String(50), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Float, nullable=False)
+
+class Serie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    genre = db.Column(db.String(50), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Float, nullable=False)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+```
+
+**forms.py**
+```python
+from wtforms import Form, StringField, FloatField, BooleanField
+from wtforms.validators import DataRequired
+
+class FilmForm(Form):
+    title = StringField("Title", validators=[DataRequired()])
+    genre = StringField("Genre", validators=[DataRequired()])
+    year = IntegerField("Year", validators=[DataRequired()])
+    rating = FloatField("Rating", validators=[DataRequired()])
+
+class SerieForm(FilmForm):
+    pass
+```
+
+**db.sql**
+```sql
+CREATE TABLE films (
+  id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL,
+  genre TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  rating REAL NOT NULL
+);
+
+CREATE TABLE series (
+  id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL,
+  genre TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  rating REAL NOT NULL
+);
+
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  username TEXT NOT NULL,
+  password TEXT NOT NULL
+);
+```
+
+**Note :**
+
+* Assurez-vous d'avoir Python 3.9 installé sur votre ordinateur pour que l'application fonctionne correctement.
+* Pour initialiser la base de données, exécutez la commande `python db_init.py`.
+* Pour lancer l'application, exécutez la commande `flask run` dans le répertoire racine du projet.

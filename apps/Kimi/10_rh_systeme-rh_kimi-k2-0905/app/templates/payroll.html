@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+
+{% block title %}Paie - HR Manager{% endblock %}
+{% block page_title %}Gestion de la Paie{% endblock %}
+
+{% block content %}
+<div class="payroll-page">
+    <!-- KPIs -->
+    <div class="kpi-grid kpi-grid-4">
+        <div class="kpi-card kpi-small">
+            <div class="kpi-icon kpi-blue">
+                <i class="fas fa-euro-sign"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiTotalGross">-</h3>
+                <p>Total brut ce mois</p>
+            </div>
+        </div>
+        <div class="kpi-card kpi-small">
+            <div class="kpi-icon kpi-green">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiTotalNet">-</h3>
+                <p>Total net ce mois</p>
+            </div>
+        </div>
+        <div class="kpi-card kpi-small">
+            <div class="kpi-icon kpi-orange">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiPayrollCount">-</h3>
+                <p>Bulletins ce mois</p>
+            </div>
+        </div>
+        <div class="kpi-card kpi-small">
+            <div class="kpi-icon kpi-purple">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiAvgNet">-</h3>
+                <p>Moyenne nette</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <select id="filterPayrollMonth" onchange="loadPayroll()">
+                <option value="1">Janvier</option>
+                <option value="2">Février</option>
+                <option value="3">Mars</option>
+                <option value="4">Avril</option>
+                <option value="5">Mai</option>
+                <option value="6" selected>Juin</option>
+                <option value="7">Juillet</option>
+                <option value="8">Août</option>
+                <option value="9">Septembre</option>
+                <option value="10">Octobre</option>
+                <option value="11">Novembre</option>
+                <option value="12">Décembre</option>
+            </select>
+            <select id="filterPayrollYear" onchange="loadPayroll()">
+                <option value="2024" selected>2024</option>
+                <option value="2023">2023</option>
+            </select>
+        </div>
+        <div class="toolbar-right">
+            {% if user and (user.role == 'admin' or user.role == 'hr') %}
+            <button class="btn btn-primary" onclick="showPayrollModal()">
+                <i class="fas fa-plus"></i> Nouvelle fiche de paie
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Payroll Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive" id="payrollTableContainer">
+                <p class="text-center text-muted">Chargement des fiches de paie...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Payroll -->
+<div class="modal-overlay" id="payrollModalOverlay"></div>
+<div class="modal modal-lg" id="payrollModal">
+    <div class="modal-header">
+        <h3 class="modal-title">Nouvelle fiche de paie</h3>
+        <button class="modal-close" onclick="closePayrollModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <form id="payrollForm">
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="payEmployee">Employé *</label>
+                    <select id="payEmployee" name="employee_id" required></select>
+                </div>
+                <div class="form-group col-3">
+                    <label for="payMonth">Mois *</label>
+                    <select id="payMonth" name="period_month" required>
+                        <option value="1">Janvier</option>
+                        <option value="2">Février</option>
+                        <option value="3">Mars</option>
+                        <option value="4">Avril</option>
+                        <option value="5">Mai</option>
+                        <option value="6">Juin</option>
+                        <option value="7">Juillet</option>
+                        <option value="8">Août</option>
+                        <option value="9">Septembre</option>
+                        <option value="10">Octobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Décembre</option>
+                    </select>
+                </div>
+                <div class="form-group col-3">
+                    <label for="payYear">Année *</label>
+                    <input type="number" id="payYear" name="period_year" value="2024" required>
+                </div>
+            </div>
+            
+            <h4 class="form-section-title">Éléments de rémunération</h4>
+            <div class="form-row">
+                <div class="form-group col-4">
+                    <label for="payOvertimeHours">Heures supplémentaires</label>
+                    <input type="number" id="payOvertimeHours" name="overtime_hours" value="0" step="0.5">
+                </div>
+                <div class="form-group col-4">
+                    <label for="payOvertimeAmount">Montant HE</label>
+                    <input type="number" id="payOvertimeAmount" name="overtime_amount" value="0" step="0.01">
+                </div>
+                <div class="form-group col-4">
+                    <label for="payBonus">Prime</label>
+                    <input type="number" id="payBonus" name="bonus" value="0" step="0.01">
+                </div>
+            </div>
+            
+            <h4 class="form-section-title">Avantages</h4>
+            <div class="form-row">
+                <div class="form-group col-4">
+                    <label for="payMeal">Titres restaurant</label>
+                    <input type="number" id="payMeal" name="meal_vouchers" value="187" step="0.01">
+                </div>
+                <div class="form-group col-4">
+                    <label for="payTransport">Transport</label>
+                    <input type="number" id="payTransport" name="transport_allowance" value="0" step="0.01">
+                </div>
+                <div class="form-group col-4">
+                    <label for="payOtherAllow">Autres avantages</label>
+                    <input type="number" id="payOtherAllow" name="other_allowances" value="0" step="0.01">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="payDate">Date de paiement</label>
+                    <input type="date" id="payDate" name="payment_date">
+                </div>
+                <div class="form-group col-6">
+                    <label for="payMethod">Mode de paiement</label>
+                    <select id="payMethod" name="payment_method">
+                        <option value="transfer">Virement</option>
+                        <option value="check">Chèque</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closePayrollModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="savePayroll()">
+            <i class="fas fa-save"></i> Calculer et enregistrer
+        </button>
+    </div>
+</div>
+
+<!-- Modal Détail Payslip -->
+<div class="modal-overlay" id="payslipModalOverlay"></div>
+<div class="modal modal-lg" id="payslipModal">
+    <div class="modal-header">
+        <h3 class="modal-title">Bulletin de paie</h3>
+        <button class="modal-close" onclick="closePayslipModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="payslipBody">
+        Contenu...
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closePayslipModal()">Fermer</button>
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print"></i> Imprimer
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let payrolls = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    document.getElementById('filterPayrollMonth').value = now.getMonth() + 1;
+    document.getElementById('filterPayrollYear').value = now.getFullYear();
+    
+    loadEmployeesSelect();
+    loadPayroll();
+});
+
+async function loadEmployeesSelect() {
+    try {
+        const response = await fetch('/api/employees');
+        const employees = await response.json();
+        
+        const select = document.getElementById('payEmployee');
+        select.innerHTML = '<option value="">Sélectionner</option>';
+        employees.filter(e => e.status === 'active').forEach(e => {
+            select.innerHTML += `<option value="${e.id}">${e.full_name} - ${e.position_title || 'N/A'}</option>`;
+        });
+    } catch (e) { console.error(e); }
+}
+
+async function loadPayroll() {
+    try {
+        const month = document.getElementById('filterPayrollMonth').value;
+        const year = document.getElementById('filterPayrollYear').value;
+        
+        const response = await fetch(`/api/payroll?month=${month}&year=${year}`);
+        payrolls = await response.json();
+        
+        // KPIs
+        const totalGross = payrolls.reduce((sum, p) => sum + p.gross_salary, 0);
+        const totalNet = payrolls.reduce((sum, p) => sum + p.net_salary, 0);
+        document.getElementById('kpiTotalGross').textContent = formatCurrency(totalGross);
+        document.getElementById('kpiTotalNet').textContent = formatCurrency(totalNet);
+        document.getElementById('kpiPayrollCount').textContent = payrolls.length;
+        document.getElementById('kpiAvgNet').textContent = formatCurrency(payrolls.length ? totalNet / payrolls.length : 0);
+        
+        renderPayrollTable(payrolls);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderPayrollTable(payrolls) {
+    const container = document.getElementById('payrollTableContainer');
+    
+    if (payrolls.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted">Aucune fiche de paie pour cette période</p>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Employé</th>
+                    <th>Période</th>
+                    <th>Base</th>
+                    <th>Brut</th>
+                    <th>Déductions</th>
+                    <th>Net</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${payrolls.map(p => `
+                    <tr>
+                        <td><strong>${p.employee_name}</strong></td>
+                        <td>${p.period_label}</td>
+                        <td>${formatCurrency(p.base_salary)}</td>
+                        <td>${formatCurrency(p.gross_salary)}</td>
+                        <td>${formatCurrency(p.total_deductions)}</td>
+                        <td><strong>${formatCurrency(p.net_salary)}</strong></td>
+                        <td><span class="badge badge-${p.status}">${formatStatus(p.status)}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewPayslip(${p.id})" title="Voir le bulletin">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function showPayrollModal() {
+    document.getElementById('payrollForm').reset();
+    const now = new Date();
+    document.getElementById('payMonth').value = now.getMonth() + 1;
+    document.getElementById('payYear').value = now.getFullYear();
+    document.getElementById('payDate').value = now.toISOString().split('T')[0];
+    
+    document.getElementById('payrollModal').classList.add('active');
+    document.getElementById('payrollModalOverlay').classList.add('active');
+}
+
+function closePayrollModal() {
+    document.getElementById('payrollModal').classList.remove('active');
+    document.getElementById('payrollModalOverlay').classList.remove('active');
+}
+
+async function savePayroll() {
+    const form = document.getElementById('payrollForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
+    
+    try {
+        const response = await fetch('/api/payroll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            showNotification('Fiche de paie créée', 'success');
+            closePayrollModal();
+            loadPayroll();
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
+function viewPayslip(id) {
+    const p = payrolls.find(x => x.id === id);
+    if (!p) return;
+    
+    document.getElementById('payslipBody').innerHTML = `
+        <div class="payslip">
+            <div class="payslip-header">
+                <div>
+                    <h2>BULLETIN DE PAIE</h2>
+                    <p>Période: ${p.period_label}</p>
+                </div>
+                <div class="payslip-company">
+                    <strong>HR Manager Entreprise</strong>
+                    <p>15 Rue de la Paix, 75002 Paris</p>
+                </div>
+            </div>
+            
+            <div class="payslip-employee">
+                <p><strong>${p.employee_name}</strong></p>
+                <p>Matricule: ${p.employee_id || 'N/A'}</p>
+            </div>
+            
+            <table class="payslip-table">
+                <thead>
+                    <tr>
+                        <th>Élément</th>
+                        <th class="text-right">Base</th>
+                        <th class="text-right">Taux</th>
+                        <th class="text-right">Montant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight">
+                        <td><strong>Salaire de base</strong></td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right"><strong>${formatCurrency(p.base_salary)}</strong></td>
+                    </tr>
+                    ${p.overtime_amount > 0 ? `
+                    <tr>
+                        <td>Heures supplémentaires (${p.overtime_hours}h)</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">${formatCurrency(p.overtime_amount)}</td>
+                    </tr>` : ''}
+                    ${p.bonus > 0 ? `
+                    <tr>
+                        <td>Prime</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">${formatCurrency(p.bonus)}</td>
+                    </tr>` : ''}
+                    ${p.commission > 0 ? `
+                    <tr>
+                        <td>Commission</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">${formatCurrency(p.commission)}</td>
+                    </tr>` : ''}
+                    ${p.meal_vouchers > 0 ? `
+                    <tr>
+                        <td>Titres restaurant</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">${formatCurrency(p.meal_vouchers)}</td>
+                    </tr>` : ''}
+                    ${p.transport_allowance > 0 ? `
+                    <tr>
+                        <td>Indemnité transport</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">${formatCurrency(p.transport_allowance)}</td>
+                    </tr>` : ''}
+                </tbody>
+            </table>
+            
+            <div class="payslip-totals">
+                <div class="total-row highlight">
+                    <span>SALAIRE BRUT</span>
+                    <span>${formatCurrency(p.gross_salary)}</span>
+                </div>
+            </div>
+            
+            <table class="payslip-table">
+                <tbody>
+                    <tr>
+                        <td>Sécurité sociale</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">-${formatCurrency(p.social_security)}</td>
+                    </tr>
+                    <tr>
+                        <td>Assurance chômage</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">-${formatCurrency(p.unemployment_insurance)}</td>
+                    </tr>
+                    <tr>
+                        <td>Retraite</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">-${formatCurrency(p.retirement_contribution)}</td>
+                    </tr>
+                    <tr>
+                        <td>Impôt sur le revenu</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">-${formatCurrency(p.income_tax)}</td>
+                    </tr>
+                    ${p.other_deductions > 0 ? `
+                    <tr>
+                        <td>Autres déductions</td>
+                        <td class="text-right"></td>
+                        <td class="text-right"></td>
+                        <td class="text-right">-${formatCurrency(p.other_deductions)}</td>
+                    </tr>` : ''}
+                </tbody>
+            </table>
+            
+            <div class="payslip-totals">
+                <div class="total-row">
+                    <span>Total déductions</span>
+                    <span>-${formatCurrency(p.total_deductions)}</span>
+                </div>
+                <div class="total-row net">
+                    <span>NET À PAYER</span>
+                    <span>${formatCurrency(p.net_salary)}</span>
+                </div>
+            </div>
+            
+            <div class="payslip-footer">
+                <p>Date de paiement: ${p.payment_date ? formatDate(p.payment_date) : 'Non payé'}</p>
+                <p>Mode de paiement: ${p.payment_method === 'transfer' ? 'Virement bancaire' : 'Chèque'}</p>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('payslipModal').classList.add('active');
+    document.getElementById('payslipModalOverlay').classList.add('active');
+}
+
+function closePayslipModal() {
+    document.getElementById('payslipModal').classList.remove('active');
+    document.getElementById('payslipModalOverlay').classList.remove('active');
+}
+</script>
+{% endblock %}

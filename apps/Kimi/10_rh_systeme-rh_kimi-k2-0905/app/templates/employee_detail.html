@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}{{ employee.full_name() }} - HR Manager{% endblock %}
+{% block page_title %}Fiche Employé{% endblock %}
+
+{% block content %}
+<div class="employee-detail">
+    <div class="detail-header">
+        <div class="detail-actions">
+            <a href="{{ url_for('employees') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            {% if user and (user.role == 'admin' or user.role == 'hr') %}
+            <button class="btn btn-primary" onclick="editEmployee()">
+                <i class="fas fa-edit"></i> Modifier
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Profile Card -->
+        <div class="col-4">
+            <div class="card profile-card">
+                <div class="profile-header">
+                    <img src="https://ui-avatars.com/api/?name={{ employee.first_name }}+{{ employee.last_name }}&background=random&size=150" 
+                         alt="{{ employee.full_name() }}" class="profile-photo">
+                    <h2 class="profile-name">{{ employee.full_name() }}</h2>
+                    <p class="profile-position">{{ employee.position.title if employee.position else 'N/A' }}</p>
+                    <span class="badge badge-{{ employee.status }}">{{ employee.status }}</span>
+                </div>
+                <div class="profile-info">
+                    <div class="info-item">
+                        <i class="fas fa-id-badge"></i>
+                        <span>{{ employee.employee_id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-building"></i>
+                        <span>{{ employee.department.name if employee.department else 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>{{ employee.email }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <span>{{ employee.phone or 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Embauché le {{ employee.hire_date.strftime('%d/%m/%Y') if employee.hire_date else 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ employee.tenure_years() }} an(s) d'ancienneté</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-file-contract"></i>
+                        <span>{{ employee.contract_type }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Leave Balances -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-calendar-check"></i> Solde de congés</h3>
+                </div>
+                <div class="card-body" id="leaveBalances">
+                    <p class="text-muted">Chargement...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-8">
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab-header">
+                    <button class="tab-btn active" data-tab="info" onclick="switchTab(this)">
+                        <i class="fas fa-info-circle"></i> Informations
+                    </button>
+                    <button class="tab-btn" data-tab="leaves" onclick="switchTab(this)">
+                        <i class="fas fa-calendar-alt"></i> Congés
+                    </button>
+                    <button class="tab-btn" data-tab="evaluations" onclick="switchTab(this)">
+                        <i class="fas fa-star"></i> Évaluations
+                    </button>
+                    <button class="tab-btn" data-tab="payroll" onclick="switchTab(this)">
+                        <i class="fas fa-euro-sign"></i> Paie
+                    </button>
+                </div>
+                
+                <!-- Info Tab -->
+                <div class="tab-content active" id="tab-info">
+                    <div class="info-section">
+                        <h4>Informations personnelles</h4>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="info-label">Date de naissance</span>
+                                <span class="info-value">{{ employee.date_of_birth.strftime('%d/%m/%Y') if employee.date_of_birth else 'N/A' }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Adresse</span>
+                                <span class="info-value">{{ employee.address or 'N/A' }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Ville</span>
+                                <span class="info-value">{{ employee.city or 'N/A' }} {{ '(' + employee.postal_code + ')' if employee.postal_code else '' }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Pays</span>
+                                <span class="info-value">{{ employee.country }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>Informations professionnelles</h4>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="info-label">Manager</span>
+                                <span class="info-value">{{ employee.manager.full_name() if employee.manager else 'N/A' }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Salaire brut annuel</span>
+                                <span class="info-value">{{ "{:,.0f}".format(employee.base_salary) + " €" if employee.base_salary else 'N/A' }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Heures par semaine</span>
+                                <span class="info-value">{{ employee.work_hours_per_week }}h</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if employee.subordinates %}
+                    <div class="info-section">
+                        <h4>Équipe ({{ employee.subordinates|length }} membres)</h4>
+                        <div class="team-list">
+                            {% for sub in employee.subordinates %}
+                            <div class="team-member">
+                                <img src="https://ui-avatars.com/api/?name={{ sub.first_name }}+{{ sub.last_name }}&background=random&size=40" 
+                                     alt="{{ sub.full_name() }}">
+                                <div>
+                                    <strong>{{ sub.full_name() }}</strong>
+                                    <small>{{ sub.position.title if sub.position else 'N/A' }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Leaves Tab -->
+                <div class="tab-content" id="tab-leaves">
+                    <div class="table-responsive" id="employeeLeaves">
+                        <p class="text-muted">Chargement des congés...</p>
+                    </div>
+                </div>
+                
+                <!-- Evaluations Tab -->
+                <div class="tab-content" id="tab-evaluations">
+                    <div id="employeeEvaluations">
+                        <p class="text-muted">Chargement des évaluations...</p>
+                    </div>
+                </div>
+                
+                <!-- Payroll Tab -->
+                <div class="tab-content" id="tab-payroll">
+                    <div class="table-responsive" id="employeePayrolls">
+                        <p class="text-muted">Chargement des fiches de paie...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const employeeId = {{ employee.id }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadEmployeeData();
+});
+
+async function loadEmployeeData() {
+    try {
+        const response = await fetch(`/api/employees/${employeeId}`);
+        const data = await response.json();
+        
+        // Leave Balances
+        const lbHtml = data.leave_balances.length ? `
+            ${data.leave_balances.map(lb => `
+                <div class="leave-balance-item">
+                    <div class="leave-balance-info">
+                        <span class="leave-type">${formatLeaveType(lb.leave_type)}</span>
+                        <span class="leave-year">${lb.year}</span>
+                    </div>
+                    <div class="leave-balance-bar">
+                        <div class="leave-balance-progress" style="width: ${(lb.used_days / lb.total_days * 100).toFixed(0)}%"></div>
+                    </div>
+                    <div class="leave-balance-stats">
+                        <span>${lb.used_days}j utilisés</span>
+                        <span class="remaining">${lb.remaining_days}j restants</span>
+                    </div>
+                </div>
+            `).join('')}
+        ` : '<p class="text-muted">Aucun solde</p>';
+        document.getElementById('leaveBalances').innerHTML = lbHtml;
+        
+        // Leaves
+        const leavesHtml = data.recent_leaves.length ? `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Début</th>
+                        <th>Fin</th>
+                        <th>Jours</th>
+                        <th>Statut</th>
+                        <th>Approuvé par</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.recent_leaves.map(l => `
+                        <tr>
+                            <td>${formatLeaveType(l.leave_type)}</td>
+                            <td>${formatDate(l.start_date)}</td>
+                            <td>${formatDate(l.end_date)}</td>
+                            <td>${l.days_requested}</td>
+                            <td><span class="badge badge-${l.status}">${formatStatus(l.status)}</span></td>
+                            <td>${l.approved_by_name || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        ` : '<p class="text-muted">Aucun congé</p>';
+        document.getElementById('employeeLeaves').innerHTML = leavesHtml;
+        
+        // Evaluations
+        const evalHtml = data.evaluations.length ? `
+            ${data.evaluations.map(ev => `
+                <div class="evaluation-card">
+                    <div class="evaluation-header">
+                        <h5>Évaluation ${ev.evaluation_year}</h5>
+                        <span class="badge badge-${ev.status}">${formatStatus(ev.status)}</span>
+                    </div>
+                    <div class="evaluation-rating">
+                        <div class="rating-circle">${ev.overall_rating || '-'}</div>
+                        <span>Note globale</span>
+                    </div>
+                    <div class="evaluation-details">
+                        <div class="detail-row">
+                            <span>Compétences techniques</span>
+                            <div class="rating-bar"><div style="width: ${(ev.technical_skills / 5 * 100) || 0}%"></div></div>
+                            <span>${ev.technical_skills || '-'}/5</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Communication</span>
+                            <div class="rating-bar"><div style="width: ${(ev.communication / 5 * 100) || 0}%"></div></div>
+                            <span>${ev.communication || '-'}/5</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Travail d'équipe</span>
+                            <div class="rating-bar"><div style="width: ${(ev.teamwork / 5 * 100) || 0}%"></div></div>
+                            <span>${ev.teamwork || '-'}/5</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Leadership</span>
+                            <div class="rating-bar"><div style="width: ${(ev.leadership / 5 * 100) || 0}%"></div></div>
+                            <span>${ev.leadership || '-'}/5</span>
+                        </div>
+                    </div>
+                    ${ev.strengths ? `<p><strong>Forces:</strong> ${ev.strengths}</p>` : ''}
+                    ${ev.areas_for_improvement ? `<p><strong>Axes d'amélioration:</strong> ${ev.areas_for_improvement}</p>` : ''}
+                </div>
+            `).join('')}
+        ` : '<p class="text-muted">Aucune évaluation</p>';
+        document.getElementById('employeeEvaluations').innerHTML = evalHtml;
+        
+        // Payrolls
+        const payrollHtml = data.recent_payrolls.length ? `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Période</th>
+                        <th>Brut</th>
+                        <th>Déductions</th>
+                        <th>Net</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.recent_payrolls.map(p => `
+                        <tr>
+                            <td>${p.period_label}</td>
+                            <td>${formatCurrency(p.gross_salary)}</td>
+                            <td>${formatCurrency(p.total_deductions)}</td>
+                            <td><strong>${formatCurrency(p.net_salary)}</strong></td>
+                            <td><span class="badge badge-${p.status}">${formatStatus(p.status)}</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        ` : '<p class="text-muted">Aucune fiche de paie</p>';
+        document.getElementById('employeePayrolls').innerHTML = payrollHtml;
+        
+    } catch (error) {
+        console.error('Erreur:', error);
+    }
+}
+
+function switchTab(btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    btn.classList.add('active');
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+}
+
+function editEmployee() {
+    window.location.href = `/employees?edit={{ employee.id }}`;
+}
+</script>
+{% endblock %}

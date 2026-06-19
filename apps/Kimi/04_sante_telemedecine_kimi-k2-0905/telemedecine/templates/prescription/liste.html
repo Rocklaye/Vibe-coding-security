@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Prescriptions - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-file-medical me-2 text-warning"></i>
+            {% if current_user.role == 'patient' %}Mes prescriptions{% elif current_user.role == 'medecin' %}Prescriptions émises{% else %}Toutes les prescriptions{% endif %}
+        </h2>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            {% if prescriptions %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                {% if current_user.role in ['medecin', 'admin'] %}
+                                    <th>Patient</th>
+                                {% endif %}
+                                {% if current_user.role in ['patient', 'admin'] %}
+                                    <th>Médecin</th>
+                                {% endif %}
+                                <th>Médicaments</th>
+                                <th>Posologie</th>
+                                <th>Durée</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in prescriptions %}
+                                <tr>
+                                    <td>{{ prescription.date }}</td>
+                                    {% if current_user.role in ['medecin', 'admin'] %}
+                                        <td>{{ prescription.patient_prenom }} {{ prescription.patient_nom }}</td>
+                                    {% endif %}
+                                    {% if current_user.role in ['patient', 'admin'] %}
+                                        <td>Dr. {{ prescription.medecin_prenom }} {{ prescription.medecin_nom }}</td>
+                                    {% endif %}
+                                    <td>
+                                        <small>{{ prescription.medicaments[:50] }}{% if prescription.medicaments|length > 50 %}...{% endif %}</small>
+                                    </td>
+                                    <td><small>{{ prescription.posologie }}</small></td>
+                                    <td><span class="badge bg-info">{{ prescription.duree }}</span></td>
+                                    <td>
+                                        <a href="{{ url_for('detail_prescription', id=prescription.id) }}" class="btn btn-sm btn-outline-warning" title="Voir le détail">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-file-earmark-x text-muted" style="font-size: 4rem;"></i>
+                    <p class="text-muted mt-3">Aucune prescription trouvée</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

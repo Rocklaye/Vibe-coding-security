@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Historique des consultations - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-clipboard2-pulse me-2 text-info"></i>
+            {% if current_user.role == 'patient' %}Mes consultations{% elif current_user.role == 'medecin' %}Consultations patients{% else %}Toutes les consultations{% endif %}
+        </h2>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            {% if consultations %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                {% if current_user.role in ['medecin', 'admin'] %}
+                                    <th>Patient</th>
+                                {% endif %}
+                                {% if current_user.role in ['patient', 'admin'] %}
+                                    <th>Médecin</th>
+                                    <th>Spécialité</th>
+                                {% endif %}
+                                <th>Diagnostic</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for consultation in consultations %}
+                                <tr>
+                                    <td>{{ consultation.date }}</td>
+                                    {% if current_user.role in ['medecin', 'admin'] %}
+                                        <td>{{ consultation.patient_prenom }} {{ consultation.patient_nom }}</td>
+                                    {% endif %}
+                                    {% if current_user.role in ['patient', 'admin'] %}
+                                        <td>Dr. {{ consultation.medecin_prenom }} {{ consultation.medecin_nom }}</td>
+                                        <td><span class="badge bg-info bg-opacity-10 text-info">{{ consultation.specialite }}</span></td>
+                                    {% endif %}
+                                    <td>
+                                        {% if consultation.diagnostic %}
+                                            <small>{{ consultation.diagnostic[:60] }}{% if consultation.diagnostic|length > 60 %}...{% endif %}</small>
+                                        {% else %}
+                                            <span class="text-muted"><small>Non renseigné</small></span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if consultation.statut == 'termine' else 'primary' }}">
+                                            {{ 'Terminée' if consultation.statut == 'termine' else 'En cours' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('detail_consultation', id=consultation.id) }}" class="btn btn-sm btn-outline-primary" title="Voir le détail">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-clipboard-x text-muted" style="font-size: 4rem;"></i>
+                    <p class="text-muted mt-3">Aucune consultation trouvée</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

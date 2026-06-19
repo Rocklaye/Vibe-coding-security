@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}Paramètres - HR Manager{% endblock %}
+{% block page_title %}Paramètres{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <div class="row">
+        <!-- Profile Settings -->
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-circle"></i> Mon profil</h3>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm">
+                        <div class="form-group">
+                            <label>Nom d'utilisateur</label>
+                            <input type="text" id="profileUsername" readonly class="readonly">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="profileEmail" readonly class="readonly">
+                        </div>
+                        <div class="form-group">
+                            <label>Rôle</label>
+                            <input type="text" id="profileRole" readonly class="readonly">
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Change Password -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-lock"></i> Changer le mot de passe</h3>
+                </div>
+                <div class="card-body">
+                    <form id="passwordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Mot de passe actuel *</label>
+                            <input type="password" id="currentPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Nouveau mot de passe *</label>
+                            <input type="password" id="newPassword" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirmer le mot de passe *</label>
+                            <input type="password" id="confirmPassword" required>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="changePassword()">
+                            <i class="fas fa-save"></i> Mettre à jour
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Section -->
+        {% if user and user.role == 'admin' %}
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-users-cog"></i> Gestion des utilisateurs</h3>
+                    <button class="btn btn-sm btn-primary" onclick="showUserModal()">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" id="usersTable">
+                        <p class="text-muted">Chargement...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> À propos</h3>
+                </div>
+                <div class="card-body">
+                    <div class="about-info">
+                        <p><strong>HR Manager</strong></p>
+                        <p>Version 1.0</p>
+                        <p>Application de gestion des ressources humaines</p>
+                        <hr>
+                        <p><strong>Stack technique:</strong></p>
+                        <ul>
+                            <li>Python Flask</li>
+                            <li>SQLite / SQLAlchemy</li>
+                            <li>HTML5 / CSS3 / JavaScript vanilla</li>
+                            <li>Chart.js pour les graphiques</li>
+                        </ul>
+                        <p class="text-muted mt-4">
+                            <i class="fas fa-shield-alt"></i> 
+                            Sécurité: Authentification par session, hashage des mots de passe, contrôle d'accès par rôles.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Utilisateur -->
+<div class="modal-overlay" id="userModalOverlay"></div>
+<div class="modal" id="userModal">
+    <div class="modal-header">
+        <h3 class="modal-title">Nouvel utilisateur</h3>
+        <button class="modal-close" onclick="closeUserModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <form id="userForm">
+            <div class="form-group">
+                <label for="newUsername">Nom d'utilisateur *</label>
+                <input type="text" id="newUsername" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="newUserEmail">Email *</label>
+                <input type="email" id="newUserEmail" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="newUserPassword">Mot de passe *</label>
+                <input type="password" id="newUserPassword" name="password" required minlength="6">
+            </div>
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="newUserRole">Rôle *</label>
+                    <select id="newUserRole" name="role" required>
+                        <option value="employee">Employé</option>
+                        <option value="manager">Manager</option>
+                        <option value="hr">RH</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+                <div class="form-group col-6">
+                    <label for="newUserEmployee">Employé lié</label>
+                    <select id="newUserEmployee" name="employee_id">
+                        <option value="">Aucun</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeUserModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveUser()">
+            <i class="fas fa-save"></i> Créer
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadProfile();
+    {% if user and user.role == 'admin' %}
+    loadUsers();
+    loadEmployeesSelect();
+    {% endif %}
+});
+
+async function loadProfile() {
+    try {
+        const response = await fetch('/api/me');
+        const user = await response.json();
+        
+        document.getElementById('profileUsername').value = user.username;
+        document.getElementById('profileEmail').value = user.email;
+        document.getElementById('profileRole').value = user.role;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function changePassword() {
+    const current = document.getElementById('currentPassword').value;
+    const newPass = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+    
+    if (!current || !newPass || !confirm) {
+        showNotification('Tous les champs sont obligatoires', 'error');
+        return;
+    }
+    
+    if (newPass !== confirm) {
+        showNotification('Les mots de passe ne correspondent pas', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/me/password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                current_password: current,
+                new_password: newPass
+            })
+        });
+        
+        if (response.ok) {
+            showNotification('Mot de passe mis à jour', 'success');
+            document.getElementById('passwordForm').reset();
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
+{% if user and user.role == 'admin' %}
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/users');
+        const users = await response.json();
+        
+        const container = document.getElementById('usersTable');
+        container.innerHTML = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Employé lié</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${users.map(u => `
+                        <tr>
+                            <td><strong>${u.username}</strong></td>
+                            <td>${u.email}</td>
+                            <td><span class="badge badge-${u.role}">${u.role}</span></td>
+                            <td>${u.employee_name || '-'}</td>
+                            <td><span class="status-dot ${u.is_active ? 'active' : 'inactive'}"></span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editUserRole(${u.id}, '${u.role}', ${u.is_active})" title="Modifier le rôle">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function loadEmployeesSelect() {
+    try {
+        const response = await fetch('/api/employees');
+        const employees = await response.json();
+        
+        const select = document.getElementById('newUserEmployee');
+        employees.forEach(e => {
+            select.innerHTML += `<option value="${e.id}">${e.full_name}</option>`;
+        });
+    } catch (e) { console.error(e); }
+}
+
+function showUserModal() {
+    document.getElementById('userForm').reset();
+    document.getElementById('userModal').classList.add('active');
+    document.getElementById('userModalOverlay').classList.add('active');
+}
+
+function closeUserModal() {
+    document.getElementById('userModal').classList.remove('active');
+    document.getElementById('userModalOverlay').classList.remove('active');
+}
+
+async function saveUser() {
+    const form = document.getElementById('userForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+        if (value) data[key] = value;
+    });
+    
+    try {
+        const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            showNotification('Utilisateur créé', 'success');
+            closeUserModal();
+            loadUsers();
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
+async function editUserRole(id, currentRole, isActive) {
+    const newRole = prompt('Nouveau rôle (employee, manager, hr, admin):', currentRole);
+    if (!newRole || !['employee', 'manager', 'hr', 'admin'].includes(newRole)) {
+        if (newRole) showNotification('Rôle invalide', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/users/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: newRole })
+        });
+        
+        if (response.ok) {
+            showNotification('Rôle mis à jour', 'success');
+            loadUsers();
+        }
+    } catch (e) {
+        showNotification('Erreur', 'error');
+    }
+}
+{% endif %}
+</script>
+{% endblock %}

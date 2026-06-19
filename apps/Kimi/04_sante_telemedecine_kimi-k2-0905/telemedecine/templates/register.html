@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <i class="bi bi-person-plus fs-1 mb-2"></i>
+                    <h4 class="mb-0">Créer un compte patient</h4>
+                    <small>Rejoignez TeleMed pour consulter en ligne</small>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('register') }}" onsubmit="return validateForm()">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="prenom" class="form-label">
+                                    <i class="bi bi-person me-1"></i>Prénom *
+                                </label>
+                                <input type="text" class="form-control" id="prenom" name="prenom" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nom" class="form-label">
+                                    <i class="bi bi-person me-1"></i>Nom *
+                                </label>
+                                <input type="text" class="form-control" id="nom" name="nom" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="bi bi-envelope me-1"></i>Adresse email *
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="votre@email.fr" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="telephone" class="form-label">
+                                <i class="bi bi-telephone me-1"></i>Téléphone
+                            </label>
+                            <input type="tel" class="form-control" id="telephone" name="telephone" 
+                                   placeholder="06 12 34 56 78">
+                        </div>
+                        <div class="mb-3">
+                            <label for="date_naissance" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Date de naissance
+                            </label>
+                            <input type="date" class="form-control" id="date_naissance" name="date_naissance">
+                        </div>
+                        <div class="mb-3">
+                            <label for="adresse" class="form-label">
+                                <i class="bi bi-geo-alt me-1"></i>Adresse
+                            </label>
+                            <textarea class="form-control" id="adresse" name="adresse" rows="2" 
+                                      placeholder="Votre adresse"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="bi bi-lock me-1"></i>Mot de passe *
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Votre mot de passe" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Minimum 6 caractères</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">
+                                <i class="bi bi-lock-fill me-1"></i>Confirmer le mot de passe *
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                       placeholder="Confirmez votre mot de passe" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-person-check me-2"></i>S'inscrire
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="text-muted mb-0">Déjà un compte ? 
+                            <a href="{{ url_for('login') }}" class="text-decoration-none">Connectez-vous</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function validateForm() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (password.length < 6) {
+        alert('Le mot de passe doit contenir au moins 6 caractères.');
+        return false;
+    }
+    
+    if (password !== confirmPassword) {
+        alert('Les mots de passe ne correspondent pas.');
+        return false;
+    }
+    
+    return true;
+}
+</script>
+{% endblock %}

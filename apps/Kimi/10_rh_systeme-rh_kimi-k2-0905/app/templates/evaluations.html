@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}Évaluations - HR Manager{% endblock %}
+{% block page_title %}Évaluations de Performance{% endblock %}
+
+{% block content %}
+<div class="evaluations-page">
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <select id="filterEvalYear" onchange="loadEvaluations()">
+                <option value="">Toutes les années</option>
+                <option value="2024" selected>2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+            </select>
+            <select id="filterEvalStatus" onchange="loadEvaluations()">
+                <option value="">Tous les statuts</option>
+                <option value="draft">Brouillon</option>
+                <option value="submitted">Soumis</option>
+                <option value="reviewed">Révisé</option>
+                <option value="approved">Approuvé</option>
+            </select>
+        </div>
+        <div class="toolbar-right">
+            {% if user and (user.role == 'manager' or user.role == 'admin' or user.role == 'hr') %}
+            <button class="btn btn-primary" onclick="showEvalModal()">
+                <i class="fas fa-plus"></i> Nouvelle évaluation
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="evaluations-grid" id="evaluationsGrid">
+        <p class="text-center text-muted">Chargement des évaluations...</p>
+    </div>
+</div>
+
+<!-- Modal Évaluation -->
+<div class="modal-overlay" id="evalModalOverlay"></div>
+<div class="modal modal-lg" id="evalModal">
+    <div class="modal-header">
+        <h3 class="modal-title" id="evalModalTitle">Nouvelle évaluation</h3>
+        <button class="modal-close" onclick="closeEvalModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <form id="evalForm">
+            <input type="hidden" id="evalId">
+            
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="evalEmployee">Employé *</label>
+                    <select id="evalEmployee" name="employee_id" required></select>
+                </div>
+                <div class="form-group col-6">
+                    <label for="evalYear">Année *</label>
+                    <select id="evalYear" name="evaluation_year" required>
+                        <option value="2024" selected>2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="evalPeriodStart">Début période</label>
+                    <input type="date" id="evalPeriodStart" name="period_start">
+                </div>
+                <div class="form-group col-6">
+                    <label for="evalPeriodEnd">Fin période</label>
+                    <input type="date" id="evalPeriodEnd" name="period_end">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="evalGoals">Objectifs</label>
+                <textarea id="evalGoals" name="goals" rows="3" placeholder="Objectifs fixés pour la période..."></textarea>
+            </div>
+            
+            <h4 class="form-section-title">Compétences évaluées (1-5)</h4>
+            <div class="rating-inputs">
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="evalTechnical">Compétences techniques</label>
+                        <input type="number" id="evalTechnical" name="technical_skills" min="1" max="5" step="0.5" placeholder="1-5">
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="evalCommunication">Communication</label>
+                        <input type="number" id="evalCommunication" name="communication" min="1" max="5" step="0.5" placeholder="1-5">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="evalTeamwork">Travail d'équipe</label>
+                        <input type="number" id="evalTeamwork" name="teamwork" min="1" max="5" step="0.5" placeholder="1-5">
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="evalLeadership">Leadership</label>
+                        <input type="number" id="evalLeadership" name="leadership" min="1" max="5" step="0.5" placeholder="1-5">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="evalInitiative">Initiative</label>
+                        <input type="number" id="evalInitiative" name="initiative" min="1" max="5" step="0.5" placeholder="1-5">
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="evalPunctuality">Ponctualité</label>
+                        <input type="number" id="evalPunctuality" name="punctuality" min="1" max="5" step="0.5" placeholder="1-5">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="evalStrengths">Forces</label>
+                <textarea id="evalStrengths" name="strengths" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="evalImprovement">Axes d'amélioration</label>
+                <textarea id="evalImprovement" name="areas_for_improvement" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="evalComments">Commentaires de l'évaluateur</label>
+                <textarea id="evalComments" name="evaluator_comments" rows="3"></textarea>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEvalModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveEvaluation()">
+            <i class="fas fa-save"></i> Enregistrer
+        </button>
+    </div>
+</div>
+
+<!-- Modal View Evaluation -->
+<div class="modal-overlay" id="viewEvalModalOverlay"></div>
+<div class="modal modal-lg" id="viewEvalModal">
+    <div class="modal-header">
+        <h3 class="modal-title">Détail de l'évaluation</h3>
+        <button class="modal-close" onclick="closeViewEvalModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="viewEvalBody">
+        Contenu...
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeViewEvalModal()">Fermer</button>
+        {% if user and (user.role == 'manager' or user.role == 'admin') %}
+        <button class="btn btn-primary" onclick="editCurrentEval()">
+            <i class="fas fa-edit"></i> Modifier
+        </button>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let evaluations = [];
+let employees = [];
+let currentEvalId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadEmployeesSelect();
+    loadEvaluations();
+});
+
+async function loadEmployeesSelect() {
+    try {
+        const response = await fetch('/api/employees');
+        employees = await response.json();
+        
+        const select = document.getElementById('evalEmployee');
+        select.innerHTML = '<option value="">Sélectionner</option>';
+        employees.forEach(e => {
+            select.innerHTML += `<option value="${e.id}">${e.full_name} - ${e.position_title || 'N/A'}</option>`;
+        });
+    } catch (e) { console.error(e); }
+}
+
+async function loadEvaluations() {
+    try {
+        const year = document.getElementById('filterEvalYear').value;
+        const status = document.getElementById('filterEvalStatus').value;
+        
+        let url = '/api/evaluations';
+        const params = [];
+        if (year) params.push(`year=${year}`);
+        if (status) params.push(`status=${status}`);
+        if (params.length) url += '?' + params.join('&');
+        
+        const response = await fetch(url);
+        evaluations = await response.json();
+        
+        renderEvaluations(evaluations);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderEvaluations(evaluations) {
+    const grid = document.getElementById('evaluationsGrid');
+    
+    if (evaluations.length === 0) {
+        grid.innerHTML = '<p class="text-center text-muted">Aucune évaluation</p>';
+        return;
+    }
+    
+    grid.innerHTML = evaluations.map(ev => {
+        const rating = ev.overall_rating || 0;
+        const ratingColor = rating >= 4 ? 'success' : rating >= 3 ? 'warning' : 'danger';
+        
+        return `
+            <div class="evaluation-card-item" onclick="viewEvaluation(${ev.id})">
+                <div class="evaluation-card-header">
+                    <div class="eval-employee">
+                        <img src="https://ui-avatars.com/api/?name=${ev.employee_name}&background=random&size=50" alt="">
+                        <div>
+                            <h4>${ev.employee_name}</h4>
+                            <span>Évalué par ${ev.evaluator_name || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <span class="badge badge-${ev.status}">${formatStatus(ev.status)}</span>
+                </div>
+                <div class="evaluation-card-body">
+                    <div class="eval-rating-large badge-${ratingColor}">${rating || '-'}</div>
+                    <div class="eval-info">
+                        <p><i class="fas fa-calendar"></i> Année ${ev.evaluation_year}</p>
+                        <p><i class="fas fa-bullseye"></i> Objectifs: ${ev.goals_achievement || 0}% atteints</p>
+                    </div>
+                </div>
+                <div class="evaluation-card-footer">
+                    <small>Mis à jour le ${formatDate(ev.updated_at)}</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function showEvalModal() {
+    document.getElementById('evalForm').reset();
+    document.getElementById('evalId').value = '';
+    document.getElementById('evalModalTitle').textContent = 'Nouvelle évaluation';
+    
+    document.getElementById('evalModal').classList.add('active');
+    document.getElementById('evalModalOverlay').classList.add('active');
+}
+
+function closeEvalModal() {
+    document.getElementById('evalModal').classList.remove('active');
+    document.getElementById('evalModalOverlay').classList.remove('active');
+}
+
+async function saveEvaluation() {
+    const form = document.getElementById('evalForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+        if (value) data[key] = value;
+    });
+    
+    const id = document.getElementById('evalId').value;
+    const url = id ? `/api/evaluations/${id}` : '/api/evaluations';
+    const method = id ? 'PUT' : 'POST';
+    
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            showNotification('Évaluation enregistrée', 'success');
+            closeEvalModal();
+            loadEvaluations();
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
+function viewEvaluation(id) {
+    const ev = evaluations.find(e => e.id === id);
+    if (!ev) return;
+    
+    currentEvalId = id;
+    
+    const ratingColor = (ev.overall_rating || 0) >= 4 ? 'success' : (ev.overall_rating || 0) >= 3 ? 'warning' : 'danger';
+    
+    document.getElementById('viewEvalBody').innerHTML = `
+        <div class="eval-detail">
+            <div class="eval-detail-header">
+                <div class="eval-employee-large">
+                    <img src="https://ui-avatars.com/api/?name=${ev.employee_name}&background=random&size=80" alt="">
+                    <div>
+                        <h3>${ev.employee_name}</h3>
+                        <p>Évaluateur: ${ev.evaluator_name || 'N/A'}</p>
+                        <p>Année: ${ev.evaluation_year}</p>
+                    </div>
+                </div>
+                <div class="eval-rating-xlarge badge-${ratingColor}">${ev.overall_rating || '-'}</div>
+            </div>
+            
+            <div class="eval-detail-grid">
+                <div class="eval-detail-section">
+                    <h4><i class="fas fa-bullseye"></i> Objectifs</h4>
+                    <p>${ev.goals || 'Non définis'}</p>
+                    ${ev.goals_achievement ? `<p>Taux de réalisation: <strong>${ev.goals_achievement}%</strong></p>` : ''}
+                </div>
+                
+                <div class="eval-detail-section">
+                    <h4><i class="fas fa-star"></i> Compétences</h4>
+                    <div class="skill-ratings">
+                        ${ev.technical_skills ? renderSkillBar('Techniques', ev.technical_skills) : ''}
+                        ${ev.communication ? renderSkillBar('Communication', ev.communication) : ''}
+                        ${ev.teamwork ? renderSkillBar('Travail d\'équipe', ev.teamwork) : ''}
+                        ${ev.leadership ? renderSkillBar('Leadership', ev.leadership) : ''}
+                        ${ev.initiative ? renderSkillBar('Initiative', ev.initiative) : ''}
+                        ${ev.punctuality ? renderSkillBar('Ponctualité', ev.punctuality) : ''}
+                    </div>
+                </div>
+                
+                <div class="eval-detail-section">
+                    <h4><i class="fas fa-thumbs-up"></i> Forces</h4>
+                    <p>${ev.strengths || 'Non renseigné'}</p>
+                </div>
+                
+                <div class="eval-detail-section">
+                    <h4><i class="fas fa-arrow-up"></i> Axes d'amélioration</h4>
+                    <p>${ev.areas_for_improvement || 'Non renseigné'}</p>
+                </div>
+                
+                ${ev.evaluator_comments ? `
+                <div class="eval-detail-section">
+                    <h4><i class="fas fa-comment"></i> Commentaires</h4>
+                    <p>${ev.evaluator_comments}</p>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('viewEvalModal').classList.add('active');
+    document.getElementById('viewEvalModalOverlay').classList.add('active');
+}
+
+function renderSkillBar(label, value) {
+    return `
+        <div class="skill-bar-item">
+            <span>${label}</span>
+            <div class="skill-bar"><div style="width: ${value / 5 * 100}%"></div></div>
+            <span>${value}/5</span>
+        </div>
+    `;
+}
+
+function closeViewEvalModal() {
+    document.getElementById('viewEvalModal').classList.remove('active');
+    document.getElementById('viewEvalModalOverlay').classList.remove('active');
+}
+
+function editCurrentEval() {
+    closeViewEvalModal();
+    const ev = evaluations.find(e => e.id === currentEvalId);
+    if (!ev) return;
+    
+    document.getElementById('evalId').value = ev.id;
+    document.getElementById('evalEmployee').value = ev.employee_id;
+    document.getElementById('evalYear').value = ev.evaluation_year;
+    document.getElementById('evalPeriodStart').value = ev.period_start || '';
+    document.getElementById('evalPeriodEnd').value = ev.period_end || '';
+    document.getElementById('evalGoals').value = ev.goals || '';
+    document.getElementById('evalTechnical').value = ev.technical_skills || '';
+    document.getElementById('evalCommunication').value = ev.communication || '';
+    document.getElementById('evalTeamwork').value = ev.teamwork || '';
+    document.getElementById('evalLeadership').value = ev.leadership || '';
+    document.getElementById('evalInitiative').value = ev.initiative || '';
+    document.getElementById('evalPunctuality').value = ev.punctuality || '';
+    document.getElementById('evalStrengths').value = ev.strengths || '';
+    document.getElementById('evalImprovement').value = ev.areas_for_improvement || '';
+    document.getElementById('evalComments').value = ev.evaluator_comments || '';
+    
+    document.getElementById('evalModalTitle').textContent = 'Modifier l\'évaluation';
+    document.getElementById('evalModal').classList.add('active');
+    document.getElementById('evalModalOverlay').classList.add('active');
+}
+</script>
+{% endblock %}

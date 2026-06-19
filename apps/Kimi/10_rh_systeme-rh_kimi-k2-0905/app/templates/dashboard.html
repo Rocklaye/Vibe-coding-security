@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord - HR Manager{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-blue">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiTotalEmployees">-</h3>
+                <p>Employés actifs</p>
+            </div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-green">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiDepartments">-</h3>
+                <p>Départements</p>
+            </div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-orange">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiPendingLeaves">-</h3>
+                <p>Congés en attente</p>
+            </div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-purple">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiNewEmployees">-</h3>
+                <p>Nouveaux ce mois</p>
+            </div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-red">
+                <i class="fas fa-euro-sign"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiPayroll">-</h3>
+                <p>Masse salariale</p>
+            </div>
+        </div>
+        
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-teal">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="kpi-info">
+                <h3 id="kpiTurnover">-</h3>
+                <p>Turnover (%)</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-bar"></i> Distribution par département</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="deptChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-pie"></i> Répartition globale</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Row -->
+    <div class="row">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-calendar-check"></i> Demandes de congés récentes</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" id="recentLeaves">
+                        <p class="text-muted">Chargement...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-history"></i> Activité récente</h3>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list" id="recentActivity">
+                        <p class="text-muted">Chargement...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+});
+
+async function loadDashboardData() {
+    try {
+        const response = await fetch('/api/dashboard/stats');
+        const data = await response.json();
+        
+        // KPIs
+        document.getElementById('kpiTotalEmployees').textContent = data.total_employees;
+        document.getElementById('kpiDepartments').textContent = data.total_departments;
+        document.getElementById('kpiPendingLeaves').textContent = data.pending_leaves;
+        document.getElementById('kpiNewEmployees').textContent = data.new_employees;
+        document.getElementById('kpiPayroll').textContent = formatCurrency(data.payroll_total);
+        document.getElementById('kpiTurnover').textContent = data.turnover_rate + '%';
+        
+        // Department Chart
+        const deptCtx = document.getElementById('deptChart').getContext('2d');
+        new Chart(deptCtx, {
+            type: 'bar',
+            data: {
+                labels: data.dept_distribution.map(d => d.name.split(' ').slice(0, 2).join(' ')),
+                datasets: [{
+                    label: 'Employés',
+                    data: data.dept_distribution.map(d => d.count),
+                    backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+        
+        // Pie Chart
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        const colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c', '#e67e22', '#34495e'];
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: data.dept_distribution.map(d => d.name.split(' ').slice(0, 2).join(' ')),
+                datasets: [{
+                    data: data.dept_distribution.map(d => d.count),
+                    backgroundColor: colors
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 15, font: { size: 11 } }
+                    }
+                }
+            }
+        });
+        
+        // Recent Leaves
+        const leavesHtml = data.recent_leaves.length ? `
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Employé</th>
+                        <th>Type</th>
+                        <th>Période</th>
+                        <th>Jours</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.recent_leaves.map(l => `
+                        <tr>
+                            <td>${l.employee_name}</td>
+                            <td>${formatLeaveType(l.leave_type)}</td>
+                            <td>${formatDate(l.start_date)} - ${formatDate(l.end_date)}</td>
+                            <td>${l.days_requested}</td>
+                            <td><span class="badge badge-${l.status}">${formatStatus(l.status)}</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        ` : '<p class="text-muted">Aucune demande récente</p>';
+        document.getElementById('recentLeaves').innerHTML = leavesHtml;
+        
+        // Recent Activity
+        const activityHtml = data.recent_activity.length ? `
+            ${data.recent_activity.map(a => `
+                <div class="activity-item">
+                    <div class="activity-icon activity-${a.action}">
+                        <i class="fas fa-${getActionIcon(a.action)}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p>${a.details || a.action + ' ' + a.entity_type}</p>
+                        <span class="activity-time">${formatDateTime(a.created_at)}</span>
+                    </div>
+                </div>
+            `).join('')}
+        ` : '<p class="text-muted">Aucune activité récente</p>';
+        document.getElementById('recentActivity').innerHTML = activityHtml;
+        
+    } catch (error) {
+        console.error('Erreur chargement dashboard:', error);
+    }
+}
+</script>
+{% endblock %}

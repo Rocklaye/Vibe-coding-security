@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des rendez-vous - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-calendar3 me-2 text-warning"></i>Gestion des rendez-vous
+        </h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            {% if rendezvous %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Date & Heure</th>
+                                <th>Patient</th>
+                                <th>Médecin</th>
+                                <th>Spécialité</th>
+                                <th>Motif</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rdv in rendezvous %}
+                                <tr>
+                                    <td>{{ rdv.id }}</td>
+                                    <td>
+                                        <small>{{ rdv.date }}</small><br>
+                                        <strong>{{ rdv.heure }}</strong>
+                                    </td>
+                                    <td>{{ rdv.patient_prenom }} {{ rdv.patient_nom }}</td>
+                                    <td>Dr. {{ rdv.medecin_prenom }} {{ rdv.medecin_nom }}</td>
+                                    <td><span class="badge bg-info bg-opacity-10 text-info">{{ rdv.specialite }}</span></td>
+                                    <td><small>{{ rdv.motif }}</small></td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if rdv.statut == 'confirme' else 'warning text-dark' if rdv.statut == 'en_attente' else 'danger' if rdv.statut == 'annule' else 'secondary' }}">
+                                            {% if rdv.statut == 'confirme' %}Confirmé
+                                            {% elif rdv.statut == 'en_attente' %}En attente
+                                            {% elif rdv.statut == 'annule' %}Annulé
+                                            {% elif rdv.statut == 'termine' %}Terminé
+                                            {% else %}{{ rdv.statut }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            {% if rdv.statut == 'en_attente' %}
+                                                <form method="POST" action="{{ url_for('confirmer_rendezvous', id=rdv.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-success" title="Confirmer">
+                                                        <i class="bi bi-check-lg"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            {% if rdv.statut in ['en_attente', 'confirme'] %}
+                                                <form method="POST" action="{{ url_for('annuler_rendezvous', id=rdv.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Annuler"
+                                                            onclick="return confirm('Annuler ce rendez-vous ?')">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+                    <p class="text-muted mt-3">Aucun rendez-vous trouvé</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

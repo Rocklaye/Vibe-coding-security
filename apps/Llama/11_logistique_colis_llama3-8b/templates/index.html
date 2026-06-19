@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shipping Tracker</title>
+</head>
+<body>
+    <h1>Shipping Tracker</h1>
+    <p>Welcome to the Shipping Tracker!</p>
+    <ul>
+        {% for shipment in shipments %}
+            <li><a href="{{ url_for('track_shipment', tracking_number=shipment.tracking_number) }}">{{ shipment.tracking_number }}</a></li>
+        {% endfor %}
+    </ul>
+    <form action="{{ url_for('create_shipment') }}" method="post">
+        {{ form.hidden_tag() }}
+        {{ form.tracking_number.label }} {{ form.tracking_number }}
+        {{ form.submit }}
+    </form>
+</body>
+</html>

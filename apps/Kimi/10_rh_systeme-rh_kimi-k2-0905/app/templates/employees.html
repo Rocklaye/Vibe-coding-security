@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Employés - HR Manager{% endblock %}
+{% block page_title %}Gestion des Employés{% endblock %}
+
+{% block content %}
+<div class="employees-page">
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher un employé..." oninput="filterEmployees()">
+            </div>
+            <select id="filterDepartment" onchange="filterEmployees()">
+                <option value="">Tous les départements</option>
+            </select>
+            <select id="filterStatus" onchange="filterEmployees()">
+                <option value="active">Actifs</option>
+                <option value="">Tous</option>
+                <option value="on_leave">En congé</option>
+                <option value="terminated">Partis</option>
+            </select>
+        </div>
+        <div class="toolbar-right">
+            {% if user and (user.role == 'admin' or user.role == 'hr') %}
+            <button class="btn btn-primary" onclick="showEmployeeModal()">
+                <i class="fas fa-plus"></i> Ajouter un employé
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Employees Grid -->
+    <div class="employees-grid" id="employeesGrid">
+        <p class="text-center text-muted">Chargement des employés...</p>
+    </div>
+</div>
+
+<!-- Modal Employé -->
+<div class="modal-overlay" id="employeeModalOverlay"></div>
+<div class="modal modal-lg" id="employeeModal">
+    <div class="modal-header">
+        <h3 class="modal-title" id="employeeModalTitle">Nouvel employé</h3>
+        <button class="modal-close" onclick="closeEmployeeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <form id="employeeForm">
+            <input type="hidden" id="empId" name="id">
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="empFirstName">Prénom *</label>
+                    <input type="text" id="empFirstName" name="first_name" required>
+                </div>
+                <div class="form-group col-6">
+                    <label for="empLastName">Nom *</label>
+                    <input type="text" id="empLastName" name="last_name" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="empEmail">Email *</label>
+                    <input type="email" id="empEmail" name="email" required>
+                </div>
+                <div class="form-group col-6">
+                    <label for="empPhone">Téléphone</label>
+                    <input type="tel" id="empPhone" name="phone">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-6">
+                    <label for="empBirthDate">Date de naissance</label>
+                    <input type="date" id="empBirthDate" name="date_of_birth">
+                </div>
+                <div class="form-group col-6">
+                    <label for="empHireDate">Date d'embauche *</label>
+                    <input type="date" id="empHireDate" name="hire_date" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-4">
+                    <label for="empDepartment">Département</label>
+                    <select id="empDepartment" name="department_id"></select>
+                </div>
+                <div class="form-group col-4">
+                    <label for="empPosition">Poste</label>
+                    <select id="empPosition" name="position_id"></select>
+                </div>
+                <div class="form-group col-4">
+                    <label for="empManager">Manager</label>
+                    <select id="empManager" name="manager_id">
+                        <option value="">Aucun</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-4">
+                    <label for="empBaseSalary">Salaire brut annuel</label>
+                    <input type="number" id="empBaseSalary" name="base_salary" step="1000">
+                </div>
+                <div class="form-group col-4">
+                    <label for="empContract">Type de contrat</label>
+                    <select id="empContract" name="contract_type">
+                        <option value="CDI">CDI</option>
+                        <option value="CDD">CDD</option>
+                        <option value="Stage">Stage</option>
+                        <option value="Freelance">Freelance</option>
+                    </select>
+                </div>
+                <div class="form-group col-4">
+                    <label for="empWorkHours">Heures/semaine</label>
+                    <input type="number" id="empWorkHours" name="work_hours_per_week" value="35">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="empAddress">Adresse</label>
+                <input type="text" id="empAddress" name="address">
+            </div>
+            <div class="form-row">
+                <div class="form-group col-4">
+                    <label for="empCity">Ville</label>
+                    <input type="text" id="empCity" name="city">
+                </div>
+                <div class="form-group col-4">
+                    <label for="empPostal">Code postal</label>
+                    <input type="text" id="empPostal" name="postal_code">
+                </div>
+                <div class="form-group col-4">
+                    <label for="empCountry">Pays</label>
+                    <input type="text" id="empCountry" name="country" value="France">
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEmployeeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveEmployee()">
+            <i class="fas fa-save"></i> Enregistrer
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allEmployees = [];
+let departments = [];
+let positions = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadDepartments();
+    loadPositions();
+    loadEmployees();
+});
+
+async function loadDepartments() {
+    try {
+        const response = await fetch('/api/departments');
+        departments = await response.json();
+        
+        // Remplir les selects
+        const deptSelects = ['filterDepartment', 'empDepartment'];
+        deptSelects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (selectId === 'filterDepartment') {
+                select.innerHTML = '<option value="">Tous les départements</option>';
+            }
+            departments.forEach(d => {
+                select.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+            });
+        });
+    } catch (e) { console.error(e); }
+}
+
+async function loadPositions() {
+    try {
+        const response = await fetch('/api/positions');
+        positions = await response.json();
+        
+        const select = document.getElementById('empPosition');
+        select.innerHTML = '<option value="">Sélectionner</option>';
+        positions.forEach(p => {
+            select.innerHTML += `<option value="${p.id}">${p.title}</option>`;
+        });
+    } catch (e) { console.error(e); }
+}
+
+async function loadEmployees() {
+    try {
+        const response = await fetch('/api/employees');
+        allEmployees = await response.json();
+        renderEmployees(allEmployees);
+        
+        // Remplir le select des managers
+        const managerSelect = document.getElementById('empManager');
+        managerSelect.innerHTML = '<option value="">Aucun</option>';
+        allEmployees.filter(e => e.status === 'active').forEach(e => {
+            managerSelect.innerHTML += `<option value="${e.id}">${e.full_name}</option>`;
+        });
+    } catch (e) {
+        console.error(e);
+        document.getElementById('employeesGrid').innerHTML = '<p class="text-error">Erreur de chargement</p>';
+    }
+}
+
+function renderEmployees(employees) {
+    const grid = document.getElementById('employeesGrid');
+    
+    if (employees.length === 0) {
+        grid.innerHTML = '<p class="text-center text-muted">Aucun employé trouvé</p>';
+        return;
+    }
+    
+    grid.innerHTML = employees.map(emp => `
+        <div class="employee-card" onclick="viewEmployee(${emp.id})">
+            <div class="employee-card-header">
+                <div class="employee-avatar">
+                    <img src="https://ui-avatars.com/api/?name=${emp.first_name}+${emp.last_name}&background=random&size=80" alt="${emp.full_name}">
+                </div>
+                <div class="employee-status">
+                    <span class="status-dot status-${emp.status}"></span>
+                </div>
+            </div>
+            <div class="employee-card-body">
+                <h4 class="employee-name">${emp.full_name}</h4>
+                <p class="employee-position">${emp.position_title || 'N/A'}</p>
+                <p class="employee-dept"><i class="fas fa-building"></i> ${emp.department_name || 'N/A'}</p>
+                <p class="employee-email"><i class="fas fa-envelope"></i> ${emp.email}</p>
+            </div>
+            <div class="employee-card-footer">
+                <span class="badge badge-outline">${emp.employee_id}</span>
+                <span class="tenure">${emp.tenure_years} an(s)</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterEmployees() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const dept = document.getElementById('filterDepartment').value;
+    const status = document.getElementById('filterStatus').value;
+    
+    let filtered = allEmployees;
+    
+    if (search) {
+        filtered = filtered.filter(e => 
+            e.full_name.toLowerCase().includes(search) ||
+            e.email.toLowerCase().includes(search) ||
+            e.employee_id.toLowerCase().includes(search)
+        );
+    }
+    
+    if (dept) {
+        filtered = filtered.filter(e => e.department_id == dept);
+    }
+    
+    if (status) {
+        filtered = filtered.filter(e => e.status === status);
+    }
+    
+    renderEmployees(filtered);
+}
+
+function viewEmployee(id) {
+    window.location.href = `/employees/${id}`;
+}
+
+function showEmployeeModal(employee = null) {
+    const modal = document.getElementById('employeeModal');
+    const overlay = document.getElementById('employeeModalOverlay');
+    const title = document.getElementById('employeeModalTitle');
+    const form = document.getElementById('employeeForm');
+    
+    form.reset();
+    document.getElementById('empId').value = '';
+    
+    if (employee) {
+        title.textContent = 'Modifier l\'employé';
+        document.getElementById('empId').value = employee.id;
+        document.getElementById('empFirstName').value = employee.first_name;
+        document.getElementById('empLastName').value = employee.last_name;
+        document.getElementById('empEmail').value = employee.email;
+        document.getElementById('empPhone').value = employee.phone || '';
+        document.getElementById('empBirthDate').value = employee.date_of_birth || '';
+        document.getElementById('empHireDate').value = employee.hire_date || '';
+        document.getElementById('empDepartment').value = employee.department_id || '';
+        document.getElementById('empPosition').value = employee.position_id || '';
+        document.getElementById('empManager').value = employee.manager_id || '';
+        document.getElementById('empBaseSalary').value = employee.base_salary || '';
+        document.getElementById('empContract').value = employee.contract_type;
+        document.getElementById('empWorkHours').value = employee.work_hours_per_week;
+        document.getElementById('empAddress').value = employee.address || '';
+        document.getElementById('empCity').value = employee.city || '';
+        document.getElementById('empPostal').value = employee.postal_code || '';
+        document.getElementById('empCountry').value = employee.country || 'France';
+    } else {
+        title.textContent = 'Nouvel employé';
+        document.getElementById('empHireDate').value = new Date().toISOString().split('T')[0];
+    }
+    
+    modal.classList.add('active');
+    overlay.classList.add('active');
+}
+
+function closeEmployeeModal() {
+    document.getElementById('employeeModal').classList.remove('active');
+    document.getElementById('employeeModalOverlay').classList.remove('active');
+}
+
+async function saveEmployee() {
+    const form = document.getElementById('employeeForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+        if (value) data[key] = value;
+    });
+    
+    const id = document.getElementById('empId').value;
+    const url = id ? `/api/employees/${id}` : '/api/employees';
+    const method = id ? 'PUT' : 'POST';
+    
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            showNotification('Employé enregistré avec succès', 'success');
+            closeEmployeeModal();
+            loadEmployees();
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Erreur', 'error');
+        }
+    } catch (e) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+</script>
+{% endblock %}

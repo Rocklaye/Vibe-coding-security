@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord Administrateur - TeleMed{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">
+                <i class="bi bi-speedometer2 me-2 text-danger"></i>Administration
+            </h2>
+            <p class="text-muted mb-0">Tableau de bord administrateur</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm bg-primary bg-opacity-10 h-100">
+                <div class="card-body text-center">
+                    <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 45px; height: 45px;">
+                        <i class="bi bi-people text-white"></i>
+                    </div>
+                    <h4 class="mb-0 fw-bold">{{ stats.total_users }}</h4>
+                    <small class="text-muted">Utilisateurs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm bg-success bg-opacity-10 h-100">
+                <div class="card-body text-center">
+                    <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 45px; height: 45px;">
+                        <i class="bi bi-person text-white"></i>
+                    </div>
+                    <h4 class="mb-0 fw-bold">{{ stats.total_patients }}</h4>
+                    <small class="text-muted">Patients</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm bg-info bg-opacity-10 h-100">
+                <div class="card-body text-center">
+                    <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 45px; height: 45px;">
+                        <i class="bi bi-person-check text-white"></i>
+                    </div>
+                    <h4 class="mb-0 fw-bold">{{ stats.total_medecins }}</h4>
+                    <small class="text-muted">Médecins</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm bg-warning bg-opacity-10 h-100">
+                <div class="card-body text-center">
+                    <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 45px; height: 45px;">
+                        <i class="bi bi-calendar3 text-white"></i>
+                    </div>
+                    <h4 class="mb-0 fw-bold">{{ stats.total_rendezvous }}</h4>
+                    <small class="text-muted">Rendez-vous</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm bg-secondary bg-opacity-10 h-100">
+                <div class="card-body text-center">
+                    <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 45px; height: 45px;">
+                        <i class="bi bi-clipboard2-pulse text-white"></i>
+                    </div>
+                    <h4 class="mb-0 fw-bold">{{ stats.total_consultations }}</h4>
+                    <small class="text-muted">Consultations</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm bg-danger bg-opacity-10 h-100">
+                <div class="card-body text-center">
+                    <div class="bg-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 45px; height: 45px;">
+                        <i class="bi bi-file-medical text-white"></i>
+                    </div>
+                    <h4 class="mb-0 fw-bold">{{ stats.total_prescriptions }}</h4>
+                    <small class="text-muted">Prescriptions</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">Actions rapides</h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ url_for('admin_utilisateurs') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-people me-2"></i>Gérer les utilisateurs
+                        </a>
+                        <a href="{{ url_for('admin_rendezvous') }}" class="btn btn-outline-warning">
+                            <i class="bi bi-calendar3 me-2"></i>Gérer les rendez-vous
+                        </a>
+                        <a href="{{ url_for('liste_consultations') }}" class="btn btn-outline-info">
+                            <i class="bi bi-clipboard2-pulse me-2"></i>Voir les consultations
+                        </a>
+                        <a href="{{ url_for('liste_prescriptions') }}" class="btn btn-outline-danger">
+                            <i class="bi bi-file-medical me-2"></i>Voir les prescriptions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Derniers utilisateurs -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-people me-2 text-primary"></i>Derniers utilisateurs</h5>
+                    <a href="{{ url_for('admin_utilisateurs') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Rôle</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in derniers_users %}
+                                    <tr>
+                                        <td>{{ user.prenom }} {{ user.nom }}</td>
+                                        <td><small>{{ user.email }}</small></td>
+                                        <td>
+                                            <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'info' if user.role == 'medecin' else 'success' }}">
+                                                {{ user.role }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if user.active == 1 %}
+                                                <span class="badge bg-success">Actif</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactif</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Derniers rendez-vous -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-calendar-event me-2 text-warning"></i>Derniers rendez-vous</h5>
+                    <a href="{{ url_for('admin_rendezvous') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Patient</th>
+                                    <th>Médecin</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rdv in derniers_rdv %}
+                                    <tr>
+                                        <td><small>{{ rdv.date }} {{ rdv.heure }}</small></td>
+                                        <td>{{ rdv.patient_prenom }} {{ rdv.patient_nom }}</td>
+                                        <td><small>Dr. {{ rdv.medecin_prenom }} {{ rdv.medecin_nom }}</small></td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if rdv.statut == 'confirme' else 'warning text-dark' if rdv.statut == 'en_attente' else 'secondary' }}">
+                                                {{ rdv.statut }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

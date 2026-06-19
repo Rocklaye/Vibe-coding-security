@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track Shipment</title>
+</head>
+<body>
+    <h1>Tracking Number: {{ shipment.tracking_number }}</h1>
+    <p>Status: {{ shipment.status }}</p>
+    {% if shipment.status == "Delivered" %}
+        <p>Shipment has been delivered!</p>
+    {% elif shipment.status == "In Transit" %}
+        <p>Shipment is in transit.</p>
+    {% else %}
+        <p>Shipment status unknown.</p>
+    {% endif %}
+</body>
+</html>

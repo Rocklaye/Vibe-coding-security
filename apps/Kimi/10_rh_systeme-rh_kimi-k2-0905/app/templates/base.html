@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HR Manager{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    {% if session.get('user_id') %}
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-users-cog"></i>
+                <span>HR Manager</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Tableau de bord</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('employees') }}" class="{% if request.endpoint == 'employees' or request.endpoint == 'employee_detail' %}active{% endif %}">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Employés</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('leaves') }}" class="{% if request.endpoint == 'leaves' %}active{% endif %}">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Congés</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('evaluations') }}" class="{% if request.endpoint == 'evaluations' %}active{% endif %}">
+                        <i class="fas fa-star"></i>
+                        <span>Évaluations</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('payroll') }}" class="{% if request.endpoint == 'payroll' %}active{% endif %}">
+                        <i class="fas fa-euro-sign"></i>
+                        <span>Paie</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('org_chart') }}" class="{% if request.endpoint == 'org_chart' %}active{% endif %}">
+                        <i class="fas fa-sitemap"></i>
+                        <span>Organigramme</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="nav-section-title">Administration</div>
+            <ul>
+                {% if user and (user.role == 'admin' or user.role == 'hr') %}
+                <li>
+                    <a href="{{ url_for('settings') }}" class="{% if request.endpoint == 'settings' %}active{% endif %}">
+                        <i class="fas fa-cog"></i>
+                        <span>Paramètres</span>
+                    </a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="{{ url_for('logout') }}" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Déconnexion</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="main-content {% if not session.get('user_id') %}full-width{% endif %}">
+        {% if session.get('user_id') %}
+        <header class="top-header">
+            <div class="header-left">
+                <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name" id="userName">{{ user.username if user else '' }}</span>
+                        <span class="user-role" id="userRole">{{ user.role if user else '' }}</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        {% endif %}
+        
+        <div class="content-wrapper">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                                {{ message }}
+                                <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal" id="modal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">Titre</h3>
+            <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            Contenu du modal
+        </div>
+        <div class="modal-footer" id="modalFooter">
+            <button class="btn btn-secondary" id="modalCancel">Annuler</button>
+            <button class="btn btn-primary" id="modalConfirm">Confirmer</button>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

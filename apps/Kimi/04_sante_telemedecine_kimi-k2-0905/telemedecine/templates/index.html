@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}TeleMed - Consultez un médecin en ligne{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Votre santé, <span class="text-primary">à portée de clic</span></h1>
+                <p class="lead mb-4">Consultez un médecin en ligne, obtenez des ordonnances électroniques et gérez vos rendez-vous médicaux depuis chez vous.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    {% if current_user %}
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4">
+                            <i class="bi bi-speedometer2 me-2"></i>Mon tableau de bord
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
+                            <i class="bi bi-person-plus me-2"></i>Commencer maintenant
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg px-4">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="mt-4 d-flex gap-4 text-muted">
+                    <div><i class="bi bi-shield-check text-success me-1"></i>Sécurisé</div>
+                    <div><i class="bi bi-clock text-primary me-1"></i>24h/24</div>
+                    <div><i class="bi bi-camera-video text-info me-1"></i>Vidéo HD</div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-illustration">
+                    <div class="doctor-card float-animation">
+                        <div class="card shadow-lg border-0">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary rounded-circle p-3 me-3">
+                                        <i class="bi bi-camera-video text-white fs-4"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <h6 class="mb-0">Consultation vidéo</h6>
+                                        <small class="text-muted">En cours...</small>
+                                    </div>
+                                </div>
+                                <div class="video-placeholder bg-light rounded mb-3" style="height: 150px;">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <i class="bi bi-person-circle text-secondary" style="font-size: 4rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <span class="badge bg-danger"><i class="bi bi-mic-mute me-1"></i></span>
+                                    <span class="badge bg-success"><i class="bi bi-camera-video me-1"></i></span>
+                                    <span class="badge bg-secondary"><i class="bi bi-telephone-x me-1"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Nos services</h2>
+            <p class="text-muted">Une solution complète pour votre santé en ligne</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm feature-card">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-camera-video text-primary fs-2"></i>
+                        </div>
+                        <h5 class="card-title">Consultation vidéo</h5>
+                        <p class="card-text text-muted">Échangez en direct avec votre médecin par vidéoconférence sécurisée en haute définition.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm feature-card">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-calendar-check text-success fs-2"></i>
+                        </div>
+                        <h5 class="card-title">Rendez-vous en ligne</h5>
+                        <p class="card-text text-muted">Prenez rendez-vous 24h/24 avec le médecin de votre choix selon ses disponibilités.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm feature-card">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-file-medical text-info fs-2"></i>
+                        </div>
+                        <h5 class="card-title">Ordonnances électroniques</h5>
+                        <p class="card-text text-muted">Recevez vos prescriptions directement sur votre espace patient, consultables à tout moment.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm feature-card">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-clock-history text-warning fs-2"></i>
+                        </div>
+                        <h5 class="card-title">Historique médical</h5>
+                        <p class="card-text text-muted">Accédez à l'historique complet de vos consultations et prescriptions à tout moment.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm feature-card">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-shield-lock text-danger fs-2"></i>
+                        </div>
+                        <h5 class="card-title">Sécurité maximale</h5>
+                        <p class="card-text text-muted">Vos données médicales sont cryptées et stockées en toute sécurité conformément au RGPD.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm feature-card">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-headset text-secondary fs-2"></i>
+                        </div>
+                        <h5 class="card-title">Support 24h/24</h5>
+                        <p class="card-text text-muted">Notre équipe est disponible à tout moment pour vous accompagner dans votre démarche.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Comment ça marche ?</h2>
+            <p class="text-muted">3 étapes simples pour consulter un médecin en ligne</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="step-circle bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold">1</span>
+                </div>
+                <h5>Créez votre compte</h5>
+                <p class="text-muted">Inscrivez-vous gratuitement en quelques clics. Renseignez vos informations personnelles.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="step-circle bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold">2</span>
+                </div>
+                <h5>Prenez rendez-vous</h5>
+                <p class="text-muted">Choisissez un médecin et un créneau horaire qui vous convient.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="step-circle bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <span class="fs-4 fw-bold">3</span>
+                </div>
+                <h5>Consultez en vidéo</h5>
+                <p class="text-muted">Connectez-vous à l'heure du rendez-vous et échangez avec votre médecin.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Doctors Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Nos médecins</h2>
+            <p class="text-muted">Une équipe de professionnels de santé à votre service</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm text-center h-100 doctor-card-home">
+                    <div class="card-body p-4">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-circle text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="mb-1">Dr. Jean Martin</h6>
+                        <p class="text-muted small mb-2">Médecine générale</p>
+                        <span class="badge bg-success">Disponible</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm text-center h-100 doctor-card-home">
+                    <div class="card-body p-4">
+                        <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-circle text-info" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="mb-1">Dr. Marie Bernard</h6>
+                        <p class="text-muted small mb-2">Cardiologie</p>
+                        <span class="badge bg-success">Disponible</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm text-center h-100 doctor-card-home">
+                    <div class="card-body p-4">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-circle text-warning" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="mb-1">Dr. Pierre Petit</h6>
+                        <p class="text-muted small mb-2">Dermatologie</p>
+                        <span class="badge bg-warning text-dark">Bientôt</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm text-center h-100 doctor-card-home">
+                    <div class="card-body p-4">
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-circle text-danger" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="mb-1">Dr. Sophie Robert</h6>
+                        <p class="text-muted small mb-2">Pédiatrie</p>
+                        <span class="badge bg-success">Disponible</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="card bg-primary text-white border-0">
+            <div class="card-body p-5 text-center">
+                <h3 class="fw-bold mb-3">Prêt à consulter un médecin en ligne ?</h3>
+                <p class="lead mb-4">Rejoignez des milliers de patients qui font confiance à TeleMed pour leur santé.</p>
+                {% if not current_user %}
+                    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-5">
+                        <i class="bi bi-person-plus me-2"></i>Créer mon compte gratuitement
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('prendre_rendezvous') }}" class="btn btn-light btn-lg px-5">
+                        <i class="bi bi-calendar-plus me-2"></i>Prendre rendez-vous
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

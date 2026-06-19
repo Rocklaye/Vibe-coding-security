@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
+    --card: 30 25% 97%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 42 56% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 20% 93%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 30 20% 93%;
+    --muted-foreground: 30 5% 42%;
+    --accent: 42 56% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 10% 86%;
+    --input: 30 10% 86%;
+    --ring: 42 56% 58%;
+    --radius: 0.75rem;
+    --chart-1: 42 56% 58%;
+    --chart-2: 170 47% 34%;
+    --chart-3: 0 72% 51%;
+    --chart-4: 30 5% 42%;
+    --chart-5: 30 20% 93%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 42 56% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 20% 93%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 30 10% 86%;
+    --sidebar-ring: 42 56% 58%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[#FBF8F5] text-[#1A1A1A] antialiased;
+    font-family: 'Manrope', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Instrument Serif', serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  .btn-gold {
+    @apply bg-[#D4A853] text-white font-medium px-6 py-3 rounded-xl transition-all duration-200;
+  }
+  .btn-gold:hover {
+    @apply bg-[#c49a4a] scale-[1.02];
+  }
+
+  .card-warm {
+    @apply bg-[#F2EDE7] rounded-[20px] shadow-[0px_12px_32px_rgba(0,0,0,0.06)] transition-all duration-200;
+  }
+  .card-warm:hover {
+    @apply shadow-[0px_16px_40px_rgba(0,0,0,0.08)];
+  }
+
+  .divider-line {
+    @apply border-b border-[#E0DCD7];
+  }
+
+  .text-muted-warm {
+    @apply text-[#6B6865];
+  }
+
+  .bg-paper {
+    @apply bg-[#FBF8F5];
+  }
+
+  .bg-warm-gray {
+    @apply bg-[#F2EDE7];
+  }
+
+  .border-warm {
+    @apply border-[#E0DCD7];
+  }
+}
+
+@layer utilities {
+  .font-serif {
+    font-family: 'Instrument Serif', serif;
+  }
+  .font-sans {
+    font-family: 'Manrope', sans-serif;
+  }
+  .font-dm {
+    font-family: 'DM Sans', sans-serif;
+  }
+}

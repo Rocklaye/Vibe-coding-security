@@ -1,0 +1,398 @@
+{% extends 'base.html' %}
+
+{% block title %}Consultation vidéo - TeleMed{% endblock %}
+
+{% block extra_css %}
+<style>
+.video-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+.video-placeholder {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.video-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 10;
+}
+.control-btn {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.control-btn:hover {
+    transform: scale(1.1);
+}
+.control-btn.mic { background: rgba(255,255,255,0.2); color: white; }
+.control-btn.camera { background: rgba(255,255,255,0.2); color: white; }
+.control-btn.end { background: #dc3545; color: white; }
+.control-btn.mic.muted { background: #dc3545; }
+.control-btn.camera.off { background: #dc3545; }
+
+.participant-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+.participant-name {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+.participant-role {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+}
+.call-timer {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: white;
+    background: rgba(0,0,0,0.5);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-family: monospace;
+    font-size: 1rem;
+}
+.call-status {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pulse-dot {
+    width: 10px;
+    height: 10px;
+    background: #28a745;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+.chat-area {
+    height: 400px;
+    overflow-y: auto;
+}
+.chat-message {
+    padding: 10px 15px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    max-width: 80%;
+}
+.chat-message.sent {
+    background: #0d6efd;
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 5px;
+}
+.chat-message.received {
+    background: #f8f9fa;
+    margin-right: auto;
+    border-bottom-left-radius: 5px;
+}
+.local-video {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    width: 150px;
+    height: 110px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row g-3">
+        <!-- Zone vidéo -->
+        <div class="col-lg-8">
+            <div class="video-container" id="videoContainer">
+                <div class="video-placeholder" id="videoPlaceholder">
+                    <div class="text-center">
+                        <div class="participant-avatar mx-auto">
+                            <i class="bi bi-person-circle" style="font-size: 4rem; color: rgba(255,255,255,0.5);"></i>
+                        </div>
+                        <p class="participant-name mb-1">
+                            {% if current_user.role == 'medecin' %}
+                                {{ consultation.patient_prenom }} {{ consultation.patient_nom }}
+                            {% else %}
+                                Dr. {{ consultation.medecin_prenom }} {{ consultation.medecin_nom }}
+                            {% endif %}
+                        </p>
+                        <p class="participant-role">
+                            {% if current_user.role == 'medecin' %}Patient
+                            {% else %}{{ consultation.specialite }}{% endif %}
+                        </p>
+                        <div class="mt-4" id="connectingMessage">
+                            <div class="spinner-border text-light" role="status"></div>
+                            <p class="text-white-50 mt-2">Connexion en cours...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vidéo locale (picture-in-picture) -->
+                <div class="local-video" id="localVideo">
+                    <i class="bi bi-person text-white-50" style="font-size: 2rem;"></i>
+                </div>
+
+                <!-- Timer -->
+                <div class="call-timer" id="callTimer">00:00</div>
+
+                <!-- Status -->
+                <div class="call-status">
+                    <div class="pulse-dot" id="statusDot"></div>
+                    <span class="text-white" id="statusText">Connecté</span>
+                </div>
+
+                <!-- Contrôles -->
+                <div class="video-controls">
+                    <button class="control-btn mic" id="micBtn" onclick="toggleMic()" title="Microphone">
+                        <i class="bi bi-mic-fill"></i>
+                    </button>
+                    <button class="control-btn camera" id="cameraBtn" onclick="toggleCamera()" title="Caméra">
+                        <i class="bi bi-camera-video-fill"></i>
+                    </button>
+                    <button class="control-btn end" onclick="endCall()" title="Terminer l'appel">
+                        <i class="bi bi-telephone-x-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panneau latéral -->
+        <div class="col-lg-4">
+            <div class="row g-3">
+                <!-- Informations -->
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informations</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1"><strong>Patient:</strong> {{ consultation.patient_prenom }} {{ consultation.patient_nom }}</p>
+                            <p class="mb-1"><strong>Médecin:</strong> Dr. {{ consultation.medecin_prenom }} {{ consultation.medecin_nom }}</p>
+                            <p class="mb-0"><strong>Spécialité:</strong> {{ consultation.specialite }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat -->
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Chat</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="chat-area p-3" id="chatArea">
+                                <div class="chat-message received">
+                                    <small class="d-block text-muted mb-1">
+                                        {% if current_user.role == 'medecin' %}{{ consultation.patient_prenom }}
+                                        {% else %}Dr. {{ consultation.medecin_prenom }}{% endif %}
+                                    </small>
+                                    Bonjour, je suis prêt(e) pour la consultation.
+                                </div>
+                            </div>
+                            <div class="p-2 border-top">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="chatInput" 
+                                           placeholder="Écrivez un message..." 
+                                           onkeypress="if(event.key==='Enter') sendMessage()">
+                                    <button class="btn btn-primary" onclick="sendMessage()">
+                                        <i class="bi bi-send"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulaire de clôture (médecin uniquement) -->
+                {% if current_user.role == 'medecin' %}
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white py-3">
+                                <h6 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Clôturer la consultation</h6>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="{{ url_for('terminer_consultation', id=consultation.id) }}" id="closeForm">
+                                    <div class="mb-2">
+                                        <label class="form-label small">Diagnostic</label>
+                                        <textarea class="form-control form-control-sm" name="diagnostic" rows="2" placeholder="Diagnostic..."></textarea>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Notes</label>
+                                        <textarea class="form-control form-control-sm" name="notes" rows="2" placeholder="Notes complémentaires..."></textarea>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="mb-2">
+                                        <label class="form-label small"><i class="bi bi-file-medical me-1"></i>Prescription</label>
+                                        <textarea class="form-control form-control-sm" name="medicaments" rows="2" placeholder="Médicaments..."></textarea>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Posologie</label>
+                                        <input type="text" class="form-control form-control-sm" name="posologie" placeholder="Ex: 1 comprimé 3 fois par jour">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Durée</label>
+                                        <input type="text" class="form-control form-control-sm" name="duree" placeholder="Ex: 7 jours">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Instructions</label>
+                                        <textarea class="form-control form-control-sm" name="instructions" rows="2" placeholder="Instructions particulières..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-sm w-100" onclick="return confirm('Terminer et enregistrer cette consultation ?')">
+                                        <i class="bi bi-check-circle me-2"></i>Terminer la consultation
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let micOn = true;
+let cameraOn = true;
+let callStarted = false;
+let seconds = 0;
+let timerInterval;
+
+// Simuler la connexion
+setTimeout(() => {
+    document.getElementById('connectingMessage').innerHTML = 
+        '<i class="bi bi-camera-video-fill text-success" style="font-size: 2rem;"></i>' +
+        '<p class="text-white-50 mt-2">Consultation en cours</p>';
+    startTimer();
+    callStarted = true;
+}, 2000);
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        seconds++;
+        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        document.getElementById('callTimer').textContent = `${mins}:${secs}`;
+    }, 1000);
+}
+
+function toggleMic() {
+    micOn = !micOn;
+    const btn = document.getElementById('micBtn');
+    if (micOn) {
+        btn.classList.remove('muted');
+        btn.innerHTML = '<i class="bi bi-mic-fill"></i>';
+    } else {
+        btn.classList.add('muted');
+        btn.innerHTML = '<i class="bi bi-mic-mute-fill"></i>';
+    }
+    addSystemMessage(micOn ? 'Microphone activé' : 'Microphone désactivé');
+}
+
+function toggleCamera() {
+    cameraOn = !cameraOn;
+    const btn = document.getElementById('cameraBtn');
+    if (cameraOn) {
+        btn.classList.remove('off');
+        btn.innerHTML = '<i class="bi bi-camera-video-fill"></i>';
+        document.getElementById('localVideo').innerHTML = '<i class="bi bi-person text-white-50" style="font-size: 2rem;"></i>';
+    } else {
+        btn.classList.add('off');
+        btn.innerHTML = '<i class="bi bi-camera-video-off-fill"></i>';
+        document.getElementById('localVideo').innerHTML = '<div class="text-white-50 small">Caméra off</div>';
+    }
+    addSystemMessage(cameraOn ? 'Caméra activée' : 'Caméra désactivée');
+}
+
+function endCall() {
+    if (confirm('Voulez-vous vraiment terminer cette consultation ?')) {
+        clearInterval(timerInterval);
+        document.getElementById('statusDot').style.background = '#dc3545';
+        document.getElementById('statusDot').style.animation = 'none';
+        document.getElementById('statusText').textContent = 'Déconnecté';
+        
+        {% if current_user.role == 'medecin' %}
+            // Le médecin doit remplir le formulaire
+            document.getElementById('videoContainer').style.opacity = '0.5';
+            addSystemMessage('Appel terminé. Veuillez clôturer la consultation.');
+        {% else %}
+            // Le patient est redirigé
+            window.location.href = '{{ url_for('patient_dashboard') }}';
+        {% endif %}
+    }
+}
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (message) {
+        const chatArea = document.getElementById('chatArea');
+        
+        // Message envoyé
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message sent';
+        msgDiv.innerHTML = `<small class="d-block mb-1 opacity-75">Vous</small>${message}`;
+        chatArea.appendChild(msgDiv);
+        
+        input.value = '';
+        chatArea.scrollTop = chatArea.scrollHeight;
+        
+        // Simulation de réponse
+        setTimeout(() => {
+            const replyDiv = document.createElement('div');
+            replyDiv.className = 'chat-message received';
+            const senderName = {% if current_user.role == 'medecin' %}'{{ consultation.patient_prenom }}'{% else %}'Dr. {{ consultation.medecin_prenom }}'{% endif %};
+            replyDiv.innerHTML = `<small class="d-block text-muted mb-1">${senderName}</small>D'accord, je note.`;
+            chatArea.appendChild(replyDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }, 1500);
+    }
+}
+
+function addSystemMessage(text) {
+    const chatArea = document.getElementById('chatArea');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'text-center my-2';
+    msgDiv.innerHTML = `<small class="text-muted">${text}</small>`;
+    chatArea.appendChild(msgDiv);
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+</script>
+{% endblock %}

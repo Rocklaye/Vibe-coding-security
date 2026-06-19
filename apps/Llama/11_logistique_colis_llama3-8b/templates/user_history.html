@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User History</title>
+</head>
+<body>
+    <h1>User History for {{ user.username }}</h1>
+    <ul>
+        {% for shipment in shipments %}
+            <li><a href="{{ url_for('track_shipment', tracking_number=shipment.tracking_number) }}">{{ shipment.tracking_number }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
