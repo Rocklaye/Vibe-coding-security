@@ -1,0 +1,14 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>Messagerie</h2>
+<form method="post">
+<input name="message">
+<button>Envoyer</button>
+</form>
+<ul>
+{% for m in messages %}
+<li>{{ m }}</li>
+{% endfor %}
+</ul>
+{% endblock %}

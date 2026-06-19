@@ -1,0 +1,7 @@
+
+{% extends 'base.html' %}{% block content %}
+<h2>Candidatures reçues</h2>
+{% for a in applications %}
+<p>Candidat {{a.candidate_id}} - {{a.status}} - CV {{a.cv_file}}</p>
+{% endfor %}
+{% endblock %}

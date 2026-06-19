@@ -1,0 +1,7 @@
+
+{% extends 'base.html' %}{% block content %}
+<a href='/job/create'>Nouvelle offre</a>
+{% for j in jobs %}
+<p>{{j.title}} <a href='/applications/{{j.id}}'>Voir candidatures</a></p>
+{% endfor %}
+{% endblock %}

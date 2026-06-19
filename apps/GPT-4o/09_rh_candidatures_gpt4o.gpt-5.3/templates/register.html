@@ -1,0 +1,9 @@
+
+{% extends 'base.html' %}{% block content %}
+<form method='post'>
+<input name='username' placeholder='Utilisateur'>
+<input type='password' name='password' placeholder='Mot de passe'>
+<select name='role'><option value='candidate'>Candidat</option><option value='recruiter'>Recruteur</option></select>
+<button>Créer</button>
+</form>
+{% endblock %}

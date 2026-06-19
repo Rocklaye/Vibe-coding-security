@@ -1,0 +1,11 @@
+
+<!DOCTYPE html><html><head><title>Portail</title>
+<link rel='stylesheet' href='{{ url_for("static",filename="style.css") }}'>
+</head><body>
+<a href='/'>Accueil</a>
+<a href='/login'>Connexion</a>
+<a href='/register'>Inscription</a>
+<a href='/dashboard'>Dashboard</a>
+<hr>
+{% block content %}{% endblock %}
+</body></html>
