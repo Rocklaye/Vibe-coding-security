@@ -1,0 +1,9 @@
+# Outils d'analyse
+bandit
+semgrep
+requests
+
+# Stack des apps générées
+flask
+flask-sqlalchemy
+werkzeug

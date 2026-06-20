@@ -1,0 +1,367 @@
+{
+  "errors": [],
+  "generated_at": "2026-06-20T04:28:17Z",
+  "metrics": {
+    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py": {
+      "CONFIDENCE.HIGH": 14,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 2,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 1,
+      "SEVERITY.LOW": 15,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 559,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/database.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 100,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "_totals": {
+      "CONFIDENCE.HIGH": 14,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 2,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 1,
+      "SEVERITY.LOW": 15,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 659,
+      "nosec": 0,
+      "skipped_tests": 0
+    }
+  },
+  "results": [
+    {
+      "code": "11 app = Flask(__name__)\n12 app.config['SECRET_KEY'] = 'votre_cle_secrete_tres_longue_et_complexe'\n13 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fleet.db'\n",
+      "col_offset": 11,
+      "end_col_offset": 23,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'votre_cle_secrete_tres_longue_et_complexe'",
+      "line_number": 12,
+      "line_range": [
+        12
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "161             vehicle_id=2, tour_id=1,\n162             latitude=current_lat + random.uniform(-0.1, 0.1),\n163             longitude=current_lon + random.uniform(-0.1, 0.1),\n",
+      "col_offset": 35,
+      "end_col_offset": 60,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 162,
+      "line_range": [
+        162
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "162             latitude=current_lat + random.uniform(-0.1, 0.1),\n163             longitude=current_lon + random.uniform(-0.1, 0.1),\n164             speed=random.uniform(80, 110),\n",
+      "col_offset": 36,
+      "end_col_offset": 61,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 163,
+      "line_range": [
+        163
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "163             longitude=current_lon + random.uniform(-0.1, 0.1),\n164             speed=random.uniform(80, 110),\n165             heading=random.uniform(0, 360),\n",
+      "col_offset": 18,
+      "end_col_offset": 41,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 164,
+      "line_range": [
+        164
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "164             speed=random.uniform(80, 110),\n165             heading=random.uniform(0, 360),\n166             timestamp=datetime.now() - timedelta(minutes=30*(5-i))\n",
+      "col_offset": 20,
+      "end_col_offset": 42,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 165,
+      "line_range": [
+        165
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "190                     if active_tour.departure_lat and active_tour.arrival_lat:\n191                         progress = random.random()\n192                         new_lat = active_tour.departure_lat + (active_tour.arrival_lat - active_tour.departure_lat) * progress\n",
+      "col_offset": 35,
+      "end_col_offset": 50,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 191,
+      "line_range": [
+        191
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "194                     else:\n195                         new_lat = 48.8566 + random.uniform(-0.05, 0.05)\n196                         new_lon = 2.3522 + random.uniform(-0.05, 0.05)\n",
+      "col_offset": 44,
+      "end_col_offset": 71,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 195,
+      "line_range": [
+        195
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "195                         new_lat = 48.8566 + random.uniform(-0.05, 0.05)\n196                         new_lon = 2.3522 + random.uniform(-0.05, 0.05)\n197                     \n",
+      "col_offset": 43,
+      "end_col_offset": 70,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 196,
+      "line_range": [
+        196
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "201                         tour_id=active_tour.id,\n202                         latitude=new_lat + random.uniform(-0.01, 0.01),\n203                         longitude=new_lon + random.uniform(-0.01, 0.01),\n",
+      "col_offset": 43,
+      "end_col_offset": 70,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 202,
+      "line_range": [
+        202
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "202                         latitude=new_lat + random.uniform(-0.01, 0.01),\n203                         longitude=new_lon + random.uniform(-0.01, 0.01),\n204                         speed=random.uniform(70, 130),\n",
+      "col_offset": 44,
+      "end_col_offset": 71,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 203,
+      "line_range": [
+        203
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "203                         longitude=new_lon + random.uniform(-0.01, 0.01),\n204                         speed=random.uniform(70, 130),\n205                         heading=random.uniform(0, 360)\n",
+      "col_offset": 30,
+      "end_col_offset": 53,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 204,
+      "line_range": [
+        204
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "204                         speed=random.uniform(70, 130),\n205                         heading=random.uniform(0, 360)\n206                     )\n",
+      "col_offset": 32,
+      "end_col_offset": 54,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 205,
+      "line_range": [
+        205
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "210                     # Mettre \u00e0 jour le kilom\u00e9trage du v\u00e9hicule\n211                     vehicle.mileage += int(random.uniform(0.1, 0.5))\n212                     \n",
+      "col_offset": 43,
+      "end_col_offset": 67,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 211,
+      "line_range": [
+        211
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "444         tour = Tour(\n445             reference=f\"TOUR-{datetime.now().strftime('%Y%m%d')}-{random.randint(100, 999)}\",\n446             driver_id=data.get('driver_id'),\n",
+      "col_offset": 66,
+      "end_col_offset": 90,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 445,
+      "line_range": [
+        445
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "664         'total_mileage': db.session.query(db.func.sum(Vehicle.mileage)).scalar() or 0,\n665         'fuel_efficiency': round(random.uniform(8, 12), 1)  # Simulation L/100km\n666     }\n",
+      "col_offset": 33,
+      "end_col_offset": 54,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 330,
+        "link": "https://cwe.mitre.org/data/definitions/330.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Standard pseudo-random generators are not suitable for security/cryptographic purposes.",
+      "line_number": 665,
+      "line_range": [
+        665
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random",
+      "test_id": "B311",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "699         init_database()\n700     app.run(debug=True, port=5000)\n",
+      "col_offset": 4,
+      "end_col_offset": 34,
+      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/12_logistique_flotte_DeepSeek-V3/app.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 94,
+        "link": "https://cwe.mitre.org/data/definitions/94.html"
+      },
+      "issue_severity": "HIGH",
+      "issue_text": "A Flask app appears to be run with debug=True, which exposes the Werkzeug debugger and allows the execution of arbitrary code.",
+      "line_number": 700,
+      "line_range": [
+        700
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b201_flask_debug_true.html",
+      "test_id": "B201",
+      "test_name": "flask_debug_true"
+    }
+  ]
+}
