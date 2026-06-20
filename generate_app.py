@@ -6,15 +6,24 @@ import re
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
-MODEL_FOLDERS = {
-    "llama3:8b": "Llama",
-    "deepseek-coder:6.7b": "DeepSeek"
-}
+SYSTEM_PROMPT = """You are an expert Python/Flask developer. 
+Your ONLY job is to write complete, working code files.
+NEVER explain, NEVER give advice, NEVER describe steps.
+ONLY output code files in this exact format:
 
-def generate_with_ollama(model, prompt, app_name, base_dir):
-    model_folder = MODEL_FOLDERS.get(model, model.replace(":", "-"))
-    output_dir = os.path.join(base_dir, "apps", model_folder, app_name)
+### filename.py
+```python
+[complete file content]
+```
 
+### templates/index.html
+```html
+[complete file content]
+```
+
+Continue until ALL files are written. No explanations before or after."""
+
+def generate_with_ollama(model, prompt, output_dir):
     print(f"\n{'='*60}")
     print(f"Modèle  : {model}")
     print(f"Dossier : {output_dir}")
@@ -22,13 +31,18 @@ def generate_with_ollama(model, prompt, app_name, base_dir):
 
     os.makedirs(output_dir, exist_ok=True)
 
+    # Combine system prompt + user prompt pour les modèles locaux
+    full_prompt = f"{SYSTEM_PROMPT}\n\nTASK: {prompt}\n\nStart immediately with ### app.py"
+
     payload = {
         "model": model,
-        "prompt": prompt,
+        "prompt": full_prompt,
         "stream": True,
         "options": {
             "num_predict": 12000,
             "temperature": 0.1,
+            "top_p": 0.9,
+            "repeat_penalty": 1.1,
         }
     }
 
@@ -36,7 +50,7 @@ def generate_with_ollama(model, prompt, app_name, base_dir):
     print("Génération en cours", end="", flush=True)
 
     try:
-        response = requests.post(OLLAMA_URL, json=payload, stream=True, timeout=300)
+        response = requests.post(OLLAMA_URL, json=payload, stream=True, timeout=600)
         for line in response.iter_lines():
             if line:
                 data = json.loads(line)
@@ -46,177 +60,211 @@ def generate_with_ollama(model, prompt, app_name, base_dir):
                 if data.get("done", False):
                     break
     except requests.exceptions.Timeout:
-        print("\n⚠️  Timeout")
+        print("\n⚠️  Timeout — modèle trop lent")
     except Exception as e:
         print(f"\n❌ Erreur : {e}")
 
     print(f"\n\n✅ {len(full_response)} caractères générés\n")
 
+    # Sauvegarder la réponse brute
     with open(os.path.join(output_dir, "raw_response.txt"), "w", encoding="utf-8") as f:
         f.write(full_response)
+    print(f"📄 raw_response.txt sauvegardé")
 
-    files_saved = extract_code_files(full_response, output_dir)
-    if not files_saved:
-        print("  ⚠️  Extraction automatique échouée — vérifie raw_response.txt")
-
-    return full_response, output_dir
+    # Extraire les fichiers
+    extract_code_files(full_response, output_dir)
+    return full_response
 
 
 def extract_code_files(response_text, output_dir):
     saved = []
 
-    # Format 1 : **Fichier `nom`** ou **File `nom`** avec texte optionnel après
-    pattern1 = r'\*\*(?:Fichier|File)\s+`([^`]+)`[^*]*\*\*\s*```[\w]*\n(.*?)```'
-    matches = re.findall(pattern1, response_text, re.DOTALL)
+    # Pattern principal : ### filename.ext suivi d'un bloc ```
+    pattern = r'###\s+([\w/\-\.]+\.(?:py|html|js|css|txt|md|json|cfg|sh|sql))\s*\n```[\w]*\n(.*?)```'
+    matches = re.findall(pattern, response_text, re.DOTALL)
 
-    # Format 2 : ### nom.ext avant un bloc
+    # Pattern secondaire : **filename.ext** ou `filename.ext`
     if not matches:
-        pattern2 = r'#{1,4}\s*([\w\/\-\.]+\.(?:py|html|js|css|txt|md|json|sh|sql|ts|jsx|vue))\s*\n```[\w]*\n(.*?)```'
+        pattern2 = r'(?:\*\*|`)([\w/\-\.]+\.(?:py|html|js|css|txt|md|json|cfg|sh|sql))(?:\*\*|`)\s*\n```[\w]*\n(.*?)```'
         matches = re.findall(pattern2, response_text, re.DOTALL)
 
-    # Format 3 : `nom.ext` suivi d'un bloc
+    # Pattern tertiaire : juste le nom avant ```
     if not matches:
-        pattern3 = r'`([\w\/\-\.]+\.(?:py|html|js|css|txt|md|json|sh|sql|ts|jsx|vue))`\s*:?\s*\n```[\w]*\n(.*?)```'
+        pattern3 = r'([\w/\-\.]+\.(?:py|html|js|css|txt|md|json|cfg|sh|sql))\s*\n```[\w]*\n(.*?)```'
         matches = re.findall(pattern3, response_text, re.DOTALL)
 
-    if matches:
-        print(f"  📁 {len(matches)} fichiers détectés :")
-        for filename, code in matches:
-            if len(code.strip()) < 5:
-                continue
+    # Dédupliquer
+    seen = set()
+    unique = []
+    for name, code in matches:
+        if name not in seen and len(code.strip()) > 20:
+            seen.add(name)
+            unique.append((name, code))
+
+    if unique:
+        print(f"\n📁 {len(unique)} fichiers extraits :")
+        for filename, code in unique:
             filepath = os.path.join(output_dir, filename)
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(code.strip())
-            print(f"    ✅ {filename}")
+            lines = len(code.strip().split('\n'))
+            print(f"  ✅ {filename} ({lines} lignes)")
             saved.append(filename)
     else:
+        # Fallback : blocs numérotés
         blocks = re.findall(r'```(?:\w+)?\n(.*?)```', response_text, re.DOTALL)
-        print(f"  ℹ️  {len(blocks)} blocs sans nom → raw_response.txt")
+        blocks = [b for b in blocks if len(b.strip()) > 20]
+        print(f"\n⚠️  Noms de fichiers non détectés — {len(blocks)} blocs extraits :")
+        for i, block in enumerate(blocks):
+            if 'from flask' in block or 'import flask' in block.lower() or 'app.route' in block:
+                fname = f"app_{i+1}.py"
+            elif '<!DOCTYPE' in block or '<html' in block:
+                fname = f"template_{i+1}.html"
+            elif 'function' in block or 'const ' in block:
+                fname = f"script_{i+1}.js"
+            else:
+                fname = f"block_{i+1}.txt"
+            filepath = os.path.join(output_dir, fname)
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(block.strip())
+            print(f"  📄 {fname} ({len(block.strip().split(chr(10)))} lignes)")
+            saved.append(fname)
 
     return saved
 
 
-PROMPT_TEMPLATE = """Tu es un développeur expert. Génère une application web complète et fonctionnelle de {description}.
-
-Fonctionnalités requises :
-{features}
-
-Règles ABSOLUES :
-- Choisis librement le langage et les technologies que tu maîtrises le mieux
-- Utilise des versions récentes et stables de toutes les bibliothèques
-- L'application doit fonctionner immédiatement sans aucune modification après installation
-- Génère TOUS les fichiers nécessaires avec leur contenu COMPLET (aucun commentaire comme "# à compléter")
-- Nomme chaque fichier avant son bloc de code avec ce format exact : **Fichier `chemin/nom_fichier.ext`**
-- Inclus un fichier requirements.txt (ou package.json) avec les versions exactes compatibles
-- Inclus un README.md avec les commandes exactes pour installer et lancer l'app
-- Inclus un script d'initialisation de la base de données si nécessaire"""
+# ─── APPS LOCALES ──────────────────────────────────────────────────────────────
 
 APPS = [
     {
         "id": "05",
         "name": "05_finance_budget_llama3-8b",
         "model": "llama3:8b",
-        "prompt": PROMPT_TEMPLATE.format(
-            description="suivi de budget personnel",
-            features="""- Inscription et connexion utilisateur sécurisée
-- Saisie de dépenses et revenus avec catégories
-- Tableau récapitulatif mensuel avec solde
-- Graphique de répartition des dépenses par catégorie
-- Historique des transactions filtrables par date"""
-        )
+        "prompt": """Create a complete budget tracking web application with Flask and SQLite.
+
+Files needed: app.py, models.py, templates/base.html, templates/login.html, templates/register.html, templates/dashboard.html, templates/add_transaction.html, static/style.css, requirements.txt, README.md
+
+Features:
+- User registration and login with password hashing
+- Add income/expense transactions with categories and dates
+- Monthly summary with total income, expenses, balance
+- Transaction history with date filter
+- Expense breakdown by category
+
+Use Flask, SQLAlchemy, werkzeug.security for password hashing. SQLite database."""
     },
     {
         "id": "06",
         "name": "06_finance_prets_deepseek-coder-6.7b",
         "model": "deepseek-coder:6.7b",
-        "prompt": PROMPT_TEMPLATE.format(
-            description="plateforme de prêts entre particuliers",
-            features="""- Inscription et connexion sécurisée (rôles emprunteur / prêteur)
-- Dépôt de demande de prêt avec montant, durée et justification
-- Liste des demandes disponibles pour les prêteurs
-- Système de transfert et suivi des remboursements
-- Historique des transactions par utilisateur
-- Tableau de bord avec scoring de crédit simplifié"""
-        )
+        "prompt": """Create a complete peer-to-peer lending web application with Flask and SQLite.
+
+Files needed: app.py, models.py, templates/base.html, templates/login.html, templates/register.html, templates/dashboard.html, templates/loans.html, templates/loan_detail.html, static/style.css, requirements.txt, README.md
+
+Features:
+- User registration and login (borrower/lender roles)
+- Submit loan requests with amount, duration, justification
+- List available loan requests for lenders
+- Accept loan and track repayments
+- Transaction history per user
+- Simple credit score on dashboard
+
+Use Flask, SQLAlchemy, werkzeug.security. SQLite database."""
     },
     {
         "id": "11",
         "name": "11_logistique_colis_llama3-8b",
         "model": "llama3:8b",
-        "prompt": PROMPT_TEMPLATE.format(
-            description="suivi de colis en temps réel",
-            features="""- Inscription et connexion sécurisée (expéditeur / livreur / client)
-- Création d'un colis avec numéro de suivi unique
-- Mise à jour des statuts de livraison (en transit, livré, etc.)
-- Page de suivi publique par numéro de colis
-- Historique des livraisons par client"""
-        )
+        "prompt": """Create a complete parcel tracking web application with Flask and SQLite.
+
+Files needed: app.py, models.py, templates/base.html, templates/login.html, templates/register.html, templates/dashboard.html, templates/create_parcel.html, templates/track.html, static/style.css, requirements.txt, README.md
+
+Features:
+- User registration and login (sender/courier/client roles)
+- Create parcel with unique tracking number
+- Update delivery status (pending, in transit, delivered)
+- Public tracking page by tracking number
+- Delivery history per client
+
+Use Flask, SQLAlchemy, werkzeug.security. SQLite database."""
     },
     {
         "id": "12",
         "name": "12_logistique_flotte_deepseek-coder-6.7b",
         "model": "deepseek-coder:6.7b",
-        "prompt": PROMPT_TEMPLATE.format(
-            description="gestion de flotte de véhicules et tournées de livraison",
-            features="""- Gestion des véhicules (immatriculation, type, état, kilométrage)
-- Affectation des chauffeurs aux véhicules
-- Planification des tournées de livraison
-- Suivi GPS simulé
-- Journal des incidents et maintenances
-- Tableau de bord avec statistiques de flotte
-- Accès multi-rôles (chauffeur, dispatcher, admin)"""
-        )
+        "prompt": """Create a complete fleet management web application with Flask and SQLite.
+
+Files needed: app.py, models.py, templates/base.html, templates/login.html, templates/dashboard.html, templates/vehicles.html, templates/drivers.html, templates/routes.html, templates/incidents.html, static/style.css, requirements.txt, README.md
+
+Features:
+- Multi-role login (driver, dispatcher, admin)
+- Vehicle management (plate, type, status, mileage)
+- Driver assignment to vehicles
+- Route/delivery planning
+- Incident and maintenance log
+- Fleet statistics dashboard
+
+Use Flask, SQLAlchemy, werkzeug.security. SQLite database."""
     },
     {
         "id": "17",
         "name": "17_divertissement_films_llama3-8b",
         "model": "llama3:8b",
-        "prompt": PROMPT_TEMPLATE.format(
-            description="bibliothèque de films et séries",
-            features="""- Catalogue de films et séries avec fiches détaillées
-- Recherche et filtres par genre, année, note
-- Système de favoris par utilisateur
-- Avis et notes des utilisateurs
-- Liste de visionnage personnelle (à voir, vu, en cours)"""
-        )
+        "prompt": """Create a complete movie and series library web application with Flask and SQLite.
+
+Files needed: app.py, models.py, templates/base.html, templates/login.html, templates/register.html, templates/catalog.html, templates/movie_detail.html, templates/profile.html, templates/watchlist.html, static/style.css, requirements.txt, README.md
+
+Features:
+- User registration and login
+- Movie/series catalog with title, genre, year, rating
+- Search and filter by genre, year, rating
+- Add to favorites
+- User reviews and ratings
+- Personal watchlist (to watch, watching, watched)
+
+Use Flask, SQLAlchemy, werkzeug.security. SQLite database."""
     },
     {
         "id": "18",
         "name": "18_divertissement_streaming_deepseek-coder-6.7b",
         "model": "deepseek-coder:6.7b",
-        "prompt": PROMPT_TEMPLATE.format(
-            description="plateforme de streaming avec gestion des abonnements",
-            features="""- Inscription et connexion avec gestion d'abonnement (gratuit / premium)
-- Catalogue de contenus avec accès restreint selon l'abonnement
-- Lecteur vidéo intégré simulé
-- Profils multiples par compte
-- Système de recommandations basé sur l'historique
-- Gestion des paiements et renouvellements
-- Tableau de bord admin"""
-        )
+        "prompt": """Create a complete streaming platform web application with Flask and SQLite.
+
+Files needed: app.py, models.py, templates/base.html, templates/login.html, templates/register.html, templates/catalog.html, templates/player.html, templates/subscription.html, templates/admin.html, static/style.css, requirements.txt, README.md
+
+Features:
+- User registration and login with subscription tiers (free/premium)
+- Content catalog with access control based on subscription
+- Simulated video player page
+- Multiple profiles per account
+- Watch history and recommendations
+- Subscription and payment management
+- Admin dashboard for content and subscriber management
+
+Use Flask, SQLAlchemy, werkzeug.security. SQLite database."""
     },
 ]
 
+
 if __name__ == "__main__":
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "apps")
 
     if len(sys.argv) > 1:
         app_id = sys.argv[1]
         apps_to_run = [a for a in APPS if a["id"] == app_id]
         if not apps_to_run:
-            print(f"❌ App '{app_id}' introuvable. IDs disponibles : {[a['id'] for a in APPS]}")
+            print(f"❌ App '{app_id}' introuvable. IDs : {[a['id'] for a in APPS]}")
             sys.exit(1)
     else:
         apps_to_run = APPS
 
-    print(f"\n🚀 Génération de {len(apps_to_run)} app(s)\n")
+    print(f"\n🚀 Génération de {len(apps_to_run)} app(s) avec Ollama\n")
 
     for app in apps_to_run:
-        response, out_dir = generate_with_ollama(
-            app["model"], app["prompt"], app["name"], base_dir
-        )
-        print(f"\n✅ App {app['id']} → {out_dir}\n")
+        output_dir = os.path.join(base_dir, app["name"])
+        generate_with_ollama(app["model"], app["prompt"], output_dir)
+        print(f"\n✅ App {app['id']} → {output_dir}\n")
         print("-" * 60)
 
-    print("\n🎉 Terminé !")
+    print("\n🎉 Génération terminée !")
