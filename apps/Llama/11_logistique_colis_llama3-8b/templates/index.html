@@ -1,20 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Shipping Tracker</title>
+    <meta charset="UTF-8">
+    <title>Suivi de colis</title>
 </head>
 <body>
-    <h1>Shipping Tracker</h1>
-    <p>Welcome to the Shipping Tracker!</p>
-    <ul>
-        {% for shipment in shipments %}
-            <li><a href="{{ url_for('track_shipment', tracking_number=shipment.tracking_number) }}">{{ shipment.tracking_number }}</a></li>
-        {% endfor %}
-    </ul>
-    <form action="{{ url_for('create_shipment') }}" method="post">
-        {{ form.hidden_tag() }}
-        {{ form.tracking_number.label }} {{ form.tracking_number }}
-        {{ form.submit }}
+    <nav>
+        <a href="{{ url_for('index') }}">Accueil</a> |
+        <a href="{{ url_for('create_shipment') }}">Créer un colis</a>
+    </nav>
+
+    <h1>Suivi de colis</h1>
+
+    <h2>Rechercher un colis</h2>
+    <form action="{{ url_for('track_shipment', tracking_number='') }}" method="get" onsubmit="this.action='/track/' + document.getElementById('tn').value; return true;">
+        <input type="text" id="tn" placeholder="Numéro de suivi" required>
+        <button type="submit">Suivre</button>
     </form>
+
+    <h2>Tous les colis</h2>
+    {% if shipments %}
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Numéro de suivi</th>
+                <th>Statut</th>
+                <th>Utilisateur</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in shipments %}
+            <tr>
+                <td>{{ s.tracking_number }}</td>
+                <td>{{ s.status }}</td>
+                <td>{{ s.user.username if s.user else '—' }}</td>
+                <td><a href="{{ url_for('track_shipment', tracking_number=s.tracking_number) }}">Détails</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Aucun colis enregistré. <a href="{{ url_for('create_shipment') }}">Créer un colis</a>.</p>
+    {% endif %}
 </body>
 </html>

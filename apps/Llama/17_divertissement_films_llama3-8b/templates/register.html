@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription</title>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}">Catalogue</a> |
+        <a href="{{ url_for('login') }}">Connexion</a> |
+        <a href="{{ url_for('register') }}">Inscription</a>
+    </nav>
+
+    <h1>Créer un compte</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}<p style="color:red">{{ msg }}</p>{% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        <p>
+            <label for="username">Nom d'utilisateur</label><br>
+            <input type="text" id="username" name="username" required>
+        </p>
+        <p>
+            <label for="password">Mot de passe</label><br>
+            <input type="password" id="password" name="password" required>
+        </p>
+        <p><button type="submit">S'inscrire</button></p>
+    </form>
+
+    <p>Déjà un compte ? <a href="{{ url_for('login') }}">Se connecter</a></p>
+</body>
+</html>

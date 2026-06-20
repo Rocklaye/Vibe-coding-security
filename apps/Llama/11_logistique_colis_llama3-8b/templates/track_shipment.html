@@ -1,17 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Track Shipment</title>
+    <meta charset="UTF-8">
+    <title>Suivi — {{ shipment.tracking_number }}</title>
 </head>
 <body>
-    <h1>Tracking Number: {{ shipment.tracking_number }}</h1>
-    <p>Status: {{ shipment.status }}</p>
-    {% if shipment.status == "Delivered" %}
-        <p>Shipment has been delivered!</p>
-    {% elif shipment.status == "In Transit" %}
-        <p>Shipment is in transit.</p>
-    {% else %}
-        <p>Shipment status unknown.</p>
+    <nav>
+        <a href="{{ url_for('index') }}">Accueil</a> |
+        <a href="{{ url_for('create_shipment') }}">Créer un colis</a>
+    </nav>
+
+    <h1>Colis : {{ shipment.tracking_number }}</h1>
+
+    <p><strong>Statut :</strong> {{ shipment.status }}</p>
+    {% if shipment.user %}
+    <p><strong>Utilisateur :</strong>
+        <a href="{{ url_for('user_history', user_id=shipment.user.id) }}">{{ shipment.user.username }}</a>
+    </p>
     {% endif %}
+
+    <h2>Mettre à jour le statut</h2>
+    <form action="{{ url_for('update_status', tracking_number=shipment.tracking_number) }}" method="post">
+        {{ status_form.hidden_tag() }}
+        {{ status_form.status.label }} {{ status_form.status() }}
+        {{ status_form.submit() }}
+    </form>
+
+    <br><a href="{{ url_for('index') }}">← Retour</a>
 </body>
 </html>

@@ -1,10 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Budget Graph</title>
+    <meta charset="UTF-8">
+    <title>Graphique Budget</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Budget Graph</h1>
-    {{ plot }}
+    <nav>
+        <a href="{{ url_for('index') }}">Accueil</a> |
+        <a href="{{ url_for('historique') }}">Historique</a> |
+        <a href="{{ url_for('graph') }}">Graphique</a>
+    </nav>
+
+    <h1>Budget par catégorie</h1>
+
+    {% if plot_url %}
+        <img src="data:image/png;base64,{{ plot_url }}" alt="Graphique budget" style="max-width:100%;">
+    {% else %}
+        <p>Aucune transaction à afficher. <a href="{{ url_for('index') }}">Ajouter une transaction</a>.</p>
+    {% endif %}
 </body>
 </html>

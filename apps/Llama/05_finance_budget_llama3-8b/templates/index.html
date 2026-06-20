@@ -1,26 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
     <title>Budget Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <nav>
+        <a href="{{ url_for('index') }}">Accueil</a> |
+        <a href="{{ url_for('historique') }}">Historique</a> |
+        <a href="{{ url_for('graph') }}">Graphique</a>
+    </nav>
+
     <h1>Budget Tracker</h1>
+
     <form action="{{ url_for('add_transaction') }}" method="post">
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date"><br><br>
-        <label for="category">Category:</label>
-        <input type="text" id="category" name="category"><br><br>
-        <label for="amount">Amount:</label>
-        <input type="number" id="amount" name="amount"><br><br>
-        <label for="description">Description:</label>
+        <label for="date">Date :</label>
+        <input type="date" id="date" name="date" required><br><br>
+
+        <label for="category">Catégorie :</label>
+        <input type="text" id="category" name="category" required><br><br>
+
+        <label for="amount">Montant (€) :</label>
+        <input type="number" step="0.01" id="amount" name="amount" required><br><br>
+
+        <label for="description">Description :</label>
         <textarea id="description" name="description"></textarea><br><br>
-        <input type="submit" value="Add Transaction">
+
+        <input type="submit" value="Ajouter">
     </form>
-    <h2>Transactions:</h2>
+
+    <h2>Transactions récentes</h2>
+    {% if transactions %}
     <ul>
-    {% for transaction in transactions %}
-        <li>{{ transaction.date }} - {{ transaction.category }}: {{ transaction.amount }} ({{ transaction.description }})</li>
-    {% endfor %}
+        {% for t in transactions %}
+        <li>
+            {{ t.date }} — <strong>{{ t.category }}</strong> : {{ "%.2f"|format(t.amount) }} €
+            {% if t.description %}({{ t.description }}){% endif %}
+            <a href="{{ url_for('delete_transaction', id=t.id) }}" onclick="return confirm('Supprimer ?')">🗑</a>
+        </li>
+        {% endfor %}
     </ul>
+    {% else %}
+    <p>Aucune transaction pour l'instant.</p>
+    {% endif %}
 </body>
 </html>

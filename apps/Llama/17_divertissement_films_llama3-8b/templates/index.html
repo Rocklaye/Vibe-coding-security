@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Catalogue de films</title>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}">Catalogue</a> |
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('watchlist') }}">Ma liste</a> |
+            <a href="{{ url_for('profile') }}">Profil ({{ current_user.username }})</a> |
+            <a href="{{ url_for('logout') }}">Déconnexion</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Connexion</a> |
+            <a href="{{ url_for('register') }}">Inscription</a>
+        {% endif %}
+    </nav>
+
+    <h1>Catalogue de films</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}<p style="color:red">{{ msg }}</p>{% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if movies %}
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Genre</th>
+                <th>Année</th>
+                <th>Description</th>
+                {% if current_user.is_authenticated %}<th>Action</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for movie in movies %}
+            <tr>
+                <td>{{ movie.title }}</td>
+                <td>{{ movie.genre }}</td>
+                <td>{{ movie.year }}</td>
+                <td>{{ movie.description }}</td>
+                {% if current_user.is_authenticated %}
+                <td>
+                    {% if movie.id in watchlist_ids %}
+                        <a href="{{ url_for('remove_from_watchlist', movie_id=movie.id) }}">Retirer</a>
+                    {% else %}
+                        <a href="{{ url_for('add_to_watchlist', movie_id=movie.id) }}">+ Ma liste</a>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Aucun film dans le catalogue.</p>
+    {% endif %}
+</body>
+</html>

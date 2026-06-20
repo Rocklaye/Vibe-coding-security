@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ma liste de films</title>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}">Catalogue</a> |
+        <a href="{{ url_for('watchlist') }}">Ma liste</a> |
+        <a href="{{ url_for('profile') }}">Profil</a> |
+        <a href="{{ url_for('logout') }}">Déconnexion</a>
+    </nav>
+
+    <h1>Ma liste de films</h1>
+
+    {% if movies %}
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Genre</th>
+                <th>Année</th>
+                <th>Description</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movie in movies %}
+            <tr>
+                <td>{{ movie.title }}</td>
+                <td>{{ movie.genre }}</td>
+                <td>{{ movie.year }}</td>
+                <td>{{ movie.description }}</td>
+                <td><a href="{{ url_for('remove_from_watchlist', movie_id=movie.id) }}">Retirer</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Votre liste est vide. <a href="{{ url_for('index') }}">Parcourir le catalogue</a>.</p>
+    {% endif %}
+</body>
+</html>

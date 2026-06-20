@@ -1,25 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Histoire des Transactions</title>
+    <meta charset="UTF-8">
+    <title>Historique des transactions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Histoire des Transactions</h1>
-    <table>
-        <tr>
-            <th>Date</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Description</th>
-        </tr>
-        {% for transaction in transactions %}
-        <tr>
-            <td>{{ transaction.date }}</td>
-            <td>{{ transaction.category }}</td>
-            <td>{{ transaction.amount }}</td>
-            <td>{{ transaction.description }}</td>
-        </tr>
-        {% endfor %}
+    <nav>
+        <a href="{{ url_for('index') }}">Accueil</a> |
+        <a href="{{ url_for('historique') }}">Historique</a> |
+        <a href="{{ url_for('graph') }}">Graphique</a>
+    </nav>
+
+    <h1>Historique des transactions</h1>
+
+    {% if transactions %}
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Catégorie</th>
+                <th>Montant (€)</th>
+                <th>Description</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td>{{ t.date }}</td>
+                <td>{{ t.category }}</td>
+                <td>{{ "%.2f"|format(t.amount) }}</td>
+                <td>{{ t.description }}</td>
+                <td><a href="{{ url_for('delete_transaction', id=t.id) }}" onclick="return confirm('Supprimer ?')">Supprimer</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
+    {% else %}
+    <p>Aucune transaction enregistrée. <a href="{{ url_for('index') }}">Ajouter une transaction</a>.</p>
+    {% endif %}
 </body>
 </html>

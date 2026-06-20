@@ -1,13 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Create Shipment</title>
+    <meta charset="UTF-8">
+    <title>Créer un colis</title>
 </head>
 <body>
-    <h1>Create Shipment</h1>
-    <p>Enter the tracking number for your shipment:</p>
-    {{ form.hidden_tag() }}
-    {{ form.tracking_number.label }} {{ form.tracking_number }}
-    {{ form.submit }}
+    <nav>
+        <a href="{{ url_for('index') }}">Accueil</a> |
+        <a href="{{ url_for('create_shipment') }}">Créer un colis</a>
+    </nav>
+
+    <h1>Créer un colis</h1>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.tracking_number.label }}<br>
+            {{ form.tracking_number(size=30) }}<br>
+            {% for error in form.tracking_number.errors %}
+                <span style="color:red">{{ error }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.username.label }}<br>
+            {{ form.username(size=30) }}
+        </p>
+
+        <p>{{ form.submit() }}</p>
+    </form>
 </body>
 </html>

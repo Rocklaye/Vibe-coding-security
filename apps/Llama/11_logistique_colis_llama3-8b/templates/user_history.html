@@ -1,14 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>User History</title>
+    <meta charset="UTF-8">
+    <title>Historique — {{ user.username }}</title>
 </head>
 <body>
-    <h1>User History for {{ user.username }}</h1>
-    <ul>
-        {% for shipment in shipments %}
-            <li><a href="{{ url_for('track_shipment', tracking_number=shipment.tracking_number) }}">{{ shipment.tracking_number }}</a></li>
-        {% endfor %}
-    </ul>
+    <nav>
+        <a href="{{ url_for('index') }}">Accueil</a> |
+        <a href="{{ url_for('create_shipment') }}">Créer un colis</a>
+    </nav>
+
+    <h1>Historique de {{ user.username }}</h1>
+
+    {% if shipments %}
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Numéro de suivi</th>
+                <th>Statut</th>
+                <th>Détails</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in shipments %}
+            <tr>
+                <td>{{ s.tracking_number }}</td>
+                <td>{{ s.status }}</td>
+                <td><a href="{{ url_for('track_shipment', tracking_number=s.tracking_number) }}">Voir</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Aucun colis pour cet utilisateur.</p>
+    {% endif %}
 </body>
 </html>
