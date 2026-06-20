@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:17:35Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/09_rh_candidatures_gpt4o.gpt-5.3/app.py": {
+    "apps/GPT-4o/09_rh_candidatures_gpt4o.gpt-5.3/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 2,
@@ -34,7 +34,7 @@
       "code": "8 app = Flask(__name__)\n9 app.config['SECRET_KEY'] = 'change-me'\n10 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///portal.db'\n",
       "col_offset": 11,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/09_rh_candidatures_gpt4o.gpt-5.3/app.py",
+      "filename": "apps/GPT-4o/09_rh_candidatures_gpt4o.gpt-5.3/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 259,
@@ -54,7 +54,7 @@
       "code": "112 if __name__ == '__main__':\n113     app.run(debug=True)\n",
       "col_offset": 4,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/09_rh_candidatures_gpt4o.gpt-5.3/app.py",
+      "filename": "apps/GPT-4o/09_rh_candidatures_gpt4o.gpt-5.3/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

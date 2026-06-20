@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:12:21Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Claude/01_sante_dossier-medical_claude-sonnet-4.6/app.py": {
+    "apps/Claude/01_sante_dossier-medical_claude-sonnet-4.6/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 2,
@@ -34,7 +34,7 @@
       "code": "7 app = Flask(__name__)\n8 app.config['SECRET_KEY'] = 'medicore-secret-key-2024-change-in-production'\n9 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///medical.db'\n",
       "col_offset": 11,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Claude/01_sante_dossier-medical_claude-sonnet-4.6/app.py",
+      "filename": "apps/Claude/01_sante_dossier-medical_claude-sonnet-4.6/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 259,
@@ -54,7 +54,7 @@
       "code": "400         seed_demo_data()\n401     app.run(debug=True, port=5000)\n",
       "col_offset": 4,
       "end_col_offset": 34,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Claude/01_sante_dossier-medical_claude-sonnet-4.6/app.py",
+      "filename": "apps/Claude/01_sante_dossier-medical_claude-sonnet-4.6/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

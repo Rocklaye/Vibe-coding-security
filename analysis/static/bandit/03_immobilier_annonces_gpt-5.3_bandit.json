@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:16:07Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/03_immobilier_annonces_gpt-5.3/app.py": {
+    "apps/GPT-4o/03_immobilier_annonces_gpt-5.3/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 2,
@@ -15,7 +15,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/03_immobilier_annonces_gpt-5.3/models.py": {
+    "apps/GPT-4o/03_immobilier_annonces_gpt-5.3/models.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -47,7 +47,7 @@
       "code": "11 \n12 app.config['SECRET_KEY'] = 'supersecretkey'\n13 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'\n",
       "col_offset": 11,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/03_immobilier_annonces_gpt-5.3/app.py",
+      "filename": "apps/GPT-4o/03_immobilier_annonces_gpt-5.3/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 259,
@@ -67,7 +67,7 @@
       "code": "187 if __name__ == '__main__':\n188     app.run(debug=True)\n",
       "col_offset": 4,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/03_immobilier_annonces_gpt-5.3/app.py",
+      "filename": "apps/GPT-4o/03_immobilier_annonces_gpt-5.3/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

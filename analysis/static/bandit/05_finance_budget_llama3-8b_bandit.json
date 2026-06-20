@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:22:00Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Llama/05_finance_budget_llama3-8b/__init__.py": {
+    "apps/Llama/05_finance_budget_llama3-8b/__init__.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -15,7 +15,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Llama/05_finance_budget_llama3-8b/app.py": {
+    "apps/Llama/05_finance_budget_llama3-8b/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 1,
@@ -28,7 +28,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Llama/05_finance_budget_llama3-8b/db.py": {
+    "apps/Llama/05_finance_budget_llama3-8b/db.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -60,7 +60,7 @@
       "code": "88 if __name__ == \"__main__\":\n89     app.run(debug=True)\n",
       "col_offset": 4,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Llama/05_finance_budget_llama3-8b/app.py",
+      "filename": "apps/Llama/05_finance_budget_llama3-8b/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

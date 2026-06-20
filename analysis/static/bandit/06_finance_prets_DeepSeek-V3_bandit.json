@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:28:02Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/06_finance_prets_DeepSeek-V3/budget-tracker/app.py": {
+    "apps/DeepSeek/06_finance_prets_DeepSeek-V3/budget-tracker/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 1,
@@ -34,7 +34,7 @@
       "code": "260 if __name__ == '__main__':\n261     app.run(debug=True, port=5000)\n",
       "col_offset": 4,
       "end_col_offset": 34,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/06_finance_prets_DeepSeek-V3/budget-tracker/app.py",
+      "filename": "apps/DeepSeek/06_finance_prets_DeepSeek-V3/budget-tracker/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

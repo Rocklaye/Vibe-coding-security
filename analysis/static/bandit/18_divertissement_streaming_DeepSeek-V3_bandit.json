@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:28:35Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/app.py": {
+    "apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 2,
@@ -15,7 +15,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/database.py": {
+    "apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/database.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -28,7 +28,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/models.py": {
+    "apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/models.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -60,7 +60,7 @@
       "code": "9 app = Flask(__name__)\n10 app.config['SECRET_KEY'] = 'votre-cle-secrete-tres-longue-et-complexe'\n11 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///streaming.db'\n",
       "col_offset": 11,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/app.py",
+      "filename": "apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 259,
@@ -80,7 +80,7 @@
       "code": "475     init_db()\n476     app.run(debug=True)\n",
       "col_offset": 4,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/app.py",
+      "filename": "apps/DeepSeek/18_divertissement_streaming_DeepSeek-V3/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

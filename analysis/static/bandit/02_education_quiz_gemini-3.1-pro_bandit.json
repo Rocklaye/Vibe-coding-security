@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:14:17Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Gemini/02_education_quiz_gemini-3.1-pro/app.py": {
+    "apps/Gemini/02_education_quiz_gemini-3.1-pro/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 2,
@@ -34,7 +34,7 @@
       "code": "5 app = Flask(__name__)\n6 app.secret_key = 'cle_secrete_super_securisee'\n7 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///quiz.db'\n",
       "col_offset": 17,
       "end_col_offset": 46,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Gemini/02_education_quiz_gemini-3.1-pro/app.py",
+      "filename": "apps/Gemini/02_education_quiz_gemini-3.1-pro/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 259,
@@ -54,7 +54,7 @@
       "code": "155 if __name__ == '__main__':\n156     app.run(debug=True)\n",
       "col_offset": 4,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Gemini/02_education_quiz_gemini-3.1-pro/app.py",
+      "filename": "apps/Gemini/02_education_quiz_gemini-3.1-pro/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

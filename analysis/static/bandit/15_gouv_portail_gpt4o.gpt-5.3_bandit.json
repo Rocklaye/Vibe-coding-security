@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:18:56Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/15_gouv_portail_gpt4o.gpt-5.3/app.py": {
+    "apps/GPT-4o/15_gouv_portail_gpt4o.gpt-5.3/app.py": {
       "CONFIDENCE.HIGH": 1,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 2,
@@ -34,7 +34,7 @@
       "code": "7 app = Flask(__name__)\n8 app.secret_key = \"super_secret_key\"\n9 \n",
       "col_offset": 17,
       "end_col_offset": 35,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/15_gouv_portail_gpt4o.gpt-5.3/app.py",
+      "filename": "apps/GPT-4o/15_gouv_portail_gpt4o.gpt-5.3/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 259,
@@ -54,7 +54,7 @@
       "code": "62             conn.commit()\n63         except:\n64             pass\n65         conn.close()\n",
       "col_offset": 8,
       "end_col_offset": 16,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/15_gouv_portail_gpt4o.gpt-5.3/app.py",
+      "filename": "apps/GPT-4o/15_gouv_portail_gpt4o.gpt-5.3/app.py",
       "issue_confidence": "HIGH",
       "issue_cwe": {
         "id": 703,
@@ -75,7 +75,7 @@
       "code": "147     init_db()\n148     app.run(debug=True)\n",
       "col_offset": 4,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/15_gouv_portail_gpt4o.gpt-5.3/app.py",
+      "filename": "apps/GPT-4o/15_gouv_portail_gpt4o.gpt-5.3/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

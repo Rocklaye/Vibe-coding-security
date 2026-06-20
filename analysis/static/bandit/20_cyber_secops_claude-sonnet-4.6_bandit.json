@@ -1,8 +1,10 @@
+
+
 {
   "errors": [],
   "generated_at": "2026-06-20T04:14:09Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Claude/20_cyber_secops_claude-sonnet-4.6/app.py": {
+    "apps/Claude/20_cyber_secops_claude-sonnet-4.6/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 1,
@@ -34,7 +36,7 @@
       "code": "763         db.create_all()\n764     app.run(debug=True, port=8082)\n",
       "col_offset": 4,
       "end_col_offset": 34,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Claude/20_cyber_secops_claude-sonnet-4.6/app.py",
+      "filename": "apps/Claude/20_cyber_secops_claude-sonnet-4.6/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,

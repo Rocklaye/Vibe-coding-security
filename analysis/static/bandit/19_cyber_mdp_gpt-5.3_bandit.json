@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:19:07Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/app.py": {
+    "apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 2,
@@ -15,7 +15,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/models.py": {
+    "apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/models.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -28,7 +28,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/tests/test_app.py": {
+    "apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/tests/test_app.py": {
       "CONFIDENCE.HIGH": 1,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -60,7 +60,7 @@
       "code": "2 app=Flask(__name__)\n3 app.config['SECRET_KEY']='change-me'\n4 @app.route('/')\n",
       "col_offset": 11,
       "end_col_offset": 23,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/app.py",
+      "filename": "apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 259,
@@ -80,7 +80,7 @@
       "code": "5 def home(): return 'Password Manager Running'\n6 if __name__=='__main__': app.run(debug=True)\n",
       "col_offset": 25,
       "end_col_offset": 44,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/app.py",
+      "filename": "apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,
@@ -100,7 +100,7 @@
       "code": "1 def test_ok():\n2     assert True\n",
       "col_offset": 4,
       "end_col_offset": 15,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/tests/test_app.py",
+      "filename": "apps/GPT-4o/19_cyber_mdp_gpt-5.3/password_manager/tests/test_app.py",
       "issue_confidence": "HIGH",
       "issue_cwe": {
         "id": 703,

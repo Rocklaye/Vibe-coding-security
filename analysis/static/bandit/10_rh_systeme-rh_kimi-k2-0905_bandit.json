@@ -2,7 +2,7 @@
   "errors": [],
   "generated_at": "2026-06-20T04:21:43Z",
   "metrics": {
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/app.py": {
+    "apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/app.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 2,
@@ -15,7 +15,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/auth.py": {
+    "apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/auth.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -28,7 +28,7 @@
       "nosec": 0,
       "skipped_tests": 0
     },
-    "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/models.py": {
+    "apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/models.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
       "CONFIDENCE.MEDIUM": 0,
@@ -60,7 +60,7 @@
       "code": "1182     seed_data()\n1183     app.run(debug=True, host='0.0.0.0', port=5000)\n1184 else:\n",
       "col_offset": 4,
       "end_col_offset": 50,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/app.py",
+      "filename": "apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 94,
@@ -80,7 +80,7 @@
       "code": "1182     seed_data()\n1183     app.run(debug=True, host='0.0.0.0', port=5000)\n1184 else:\n",
       "col_offset": 29,
       "end_col_offset": 38,
-      "filename": "/home/rocklaye/Documents/Cours/Spe/Vibe-coding-security/apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/app.py",
+      "filename": "apps/Kimi/10_rh_systeme-rh_kimi-k2-0905/app/app.py",
       "issue_confidence": "MEDIUM",
       "issue_cwe": {
         "id": 605,
