@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Suivi GPS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-map-marker-alt text-danger me-2"></i>Suivi GPS en temps réel</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-body p-0">
+                <div id="trackingMap" style="height: 600px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Véhicules actifs</h5>
+            </div>
+            <div class="card-body" id="activeVehiclesList">
+                {% for pos in positions %}
+                <div class="vehicle-item p-3 mb-2 border rounded" onclick="focusVehicle({{ pos.id }})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>{{ pos.registration }}</strong>
+                        <span class="badge bg-{{ 'success' if pos.status == 'en_mission' else 'secondary' }}">
+                            {{ pos.status | replace('_', ' ') }}
+                        </span>
+                    </div>
+                    <div class="mt-2 small">
+                        <div><i class="fas fa-tachometer-alt me-1"></i>{{ "%.0f"|format(pos.speed) }} km/h</div>
+                        <div><i class="fas fa-route me-1"></i>{{ pos.tour_reference if pos.tour_reference else 'N/A' }}</div>
+                        <div class="text-muted">
+                            <i class="fas fa-clock me-1"></i>Dernière mise à jour : {{ pos.last_update[:19] }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% if active_tours %}
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Tournées en cours</h5>
+            </div>
+            <div class="card-body">
+                {% for tour in active_tours %}
+                <div class="mb-2">
+                    <strong>{{ tour.reference }}</strong>
+                    <br>
+                    <small class="text-muted">
+                        {{ tour.departure_address[:50] }}... → {{ tour.arrival_address[:50] }}...
+                    </small>
+                    <br>
+                    <small>Départ : {{ tour.actual_departure.strftime('%H:%M') if tour.actual_departure else 'N/A' }}</small>
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script>
+    const vehiclePositions = {{ positions|tojson|safe }};
+    initTrackingMap(vehiclePositions);
+    
+    function focusVehicle(vehicleId) {
+        // Focus sur un véhicule spécifique sur la carte
+        const vehicle = vehiclePositions.find(v => v.id === vehicleId);
+        if (vehicle && map) {
+            map.setView([vehicle.latitude, vehicle.longitude], 15);
+        }
+    }
+</script>
+{% endblock %}

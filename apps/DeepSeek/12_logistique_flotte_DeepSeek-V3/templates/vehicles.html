@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Véhicules{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-car text-primary me-2"></i>Gestion des Véhicules</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if current_user.role in ['admin', 'dispatcher'] %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
+            <i class="fas fa-plus me-1"></i>Ajouter un véhicule
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="vehiclesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Immatriculation</th>
+                        <th>Marque/Modèle</th>
+                        <th>Type</th>
+                        <th>État</th>
+                        <th>Kilométrage</th>
+                        <th>Chauffeur</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vehicle in vehicles %}
+                    <tr>
+                        <td><strong>{{ vehicle.registration }}</strong></td>
+                        <td>{{ vehicle.brand }} {{ vehicle.model }}</td>
+                        <td><span class="badge bg-info">{{ vehicle.type }}</span></td>
+                        <td>
+                            <span class="badge bg-{{ 
+                                'success' if vehicle.status == 'disponible' 
+                                else 'warning' if vehicle.status == 'en_mission' 
+                                else 'danger' if vehicle.status == 'maintenance' 
+                                else 'secondary' 
+                            }}">
+                                {{ vehicle.status | replace('_', ' ') | title }}
+                            </span>
+                        </td>
+                        <td>{{ "{:,}".format(vehicle.mileage) }} km</td>
+                        <td>
+                            {% if vehicle.driver %}
+                                {{ vehicle.driver.user.full_name }}
+                            {% else %}
+                                <span class="text-muted">Non assigné</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editVehicle({{ vehicle.id }})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {% if current_user.role == 'admin' %}
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteVehicle({{ vehicle.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajout Véhicule -->
+<div class="modal fade" id="addVehicleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Ajouter un véhicule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addVehicleForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Immatriculation *</label>
+                            <input type="text" class="form-control" name="registration" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Marque *</label>
+                            <input type="text" class="form-control" name="brand" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Modèle *</label>
+                            <input type="text" class="form-control" name="model" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Année</label>
+                            <input type="number" class="form-control" name="year">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Type *</label>
+                            <select class="form-control" name="type" required>
+                                <option value="">Choisir...</option>
+                                <option value="camion">Camion</option>
+                                <option value="fourgon">Fourgon</option>
+                                <option value="utilitaire">Utilitaire</option>
+                                <option value="voiture">Voiture</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Carburant</label>
+                            <select class="form-control" name="fuel_type">
+                                <option value="diesel">Diesel</option>
+                                <option value="essence">Essence</option>
+                                <option value="electrique">Électrique</option>
+                                <option value="hybride">Hybride</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Capacité (kg)</label>
+                            <input type="number" class="form-control" name="capacity_kg" step="0.1">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Capacité (m³)</label>
+                            <input type="number" class="form-control" name="capacity_m3" step="0.1">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="addVehicle()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addVehicle() {
+    const form = document.getElementById('addVehicleForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/api/vehicles', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + result.error);
+        }
+    });
+}
+
+function editVehicle(id) {
+    // Implémenter l'édition
+    alert('Fonctionnalité d\'édition à implémenter');
+}
+
+function deleteVehicle(id) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce véhicule ?')) {
+        fetch(`/api/vehicles/${id}`, {method: 'DELETE'})
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    location.reload();
+                }
+            });
+    }
+}
+</script>
+{% endblock %}

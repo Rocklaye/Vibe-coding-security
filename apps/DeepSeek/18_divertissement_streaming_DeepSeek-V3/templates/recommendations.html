@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Recommandations - StreamDivert{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin: 2rem 0;">🎯 Recommandations personnalisées</h1>
+    
+    {% if favorite_category %}
+    <div style="padding: 1.5rem; background: rgba(229, 9, 20, 0.1); border-radius: 8px; margin-bottom: 3rem;">
+        <p style="color: var(--text-secondary);">
+            Basé sur votre historique, vous semblez apprécier le genre 
+            <strong style="color: var(--primary-color);">{{ favorite_category }}</strong>
+        </p>
+    </div>
+    {% endif %}
+    
+    <!-- Par catégorie préférée -->
+    {% if category_recommendations %}
+    <section style="margin-bottom: 3rem;">
+        <h3 style="margin-bottom: 1.5rem;">
+            {% if favorite_category %}
+            Plus de {{ favorite_category }}
+            {% else %}
+            Suggestions pour vous
+            {% endif %}
+        </h3>
+        <div class="content-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+            {% for content in category_recommendations %}
+            <div class="content-card" onclick="window.location.href='{{ url_for('player', content_id=content.id) }}'">
+                <img src="{{ content.image_url }}" alt="{{ content.title }}"
+                     onerror="this.src='https://via.placeholder.com/220x330/1f1f1f/ffffff?text={{ content.title }}'">
+                <div class="content-info">
+                    <h3>{{ content.title }}</h3>
+                    <div class="content-meta">
+                        <span class="category-tag">{{ content.category }}</span>
+                        {% if content.is_premium %}
+                            <span class="badge badge-premium">Premium</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Nouvelles sorties -->
+    {% if new_releases %}
+    <section style="margin-bottom: 3rem;">
+        <h3 style="margin-bottom: 1.5rem;">🆕 Nouvelles sorties</h3>
+        <div class="content-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+            {% for content in new_releases %}
+            <div class="content-card" onclick="window.location.href='{{ url_for('player', content_id=content.id) }}'">
+                <img src="{{ content.image_url }}" alt="{{ content.title }}"
+                     onerror="this.src='https://via.placeholder.com/220x330/1f1f1f/ffffff?text={{ content.title }}'">
+                <div class="content-info">
+                    <h3>{{ content.title }}</h3>
+                    <div class="content-meta">
+                        <span class="category-tag">{{ content.category }}</span>
+                        {% if content.is_premium %}
+                            <span class="badge badge-premium">Premium</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Contenus populaires -->
+    {% if popular_content %}
+    <section style="margin-bottom: 3rem;">
+        <h3 style="margin-bottom: 1.5rem;">🔥 Tendances actuelles</h3>
+        <div class="content-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+            {% for content in popular_content %}
+            <div class="content-card" onclick="window.location.href='{{ url_for('player', content_id=content.id) }}'">
+                <img src="{{ content.image_url }}" alt="{{ content.title }}"
+                     onerror="this.src='https://via.placeholder.com/220x330/1f1f1f/ffffff?text={{ content.title }}'">
+                <div class="content-info">
+                    <h3>{{ content.title }}</h3>
+                    <div class="content-meta">
+                        <span class="category-tag">{{ content.category }}</span>
+                        {% if content.is_premium %}
+                            <span class="badge badge-premium">Premium</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    {% if not category_recommendations and not new_releases and not popular_content %}
+    <div style="text-align: center; padding: 4rem 0;">
+        <h3>Pas encore de recommandations</h3>
+        <p style="color: var(--text-secondary); margin: 1rem 0 2rem;">
+            Regardez quelques contenus pour obtenir des recommandations personnalisées
+        </p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="width: auto; text-decoration: none;">
+            Parcourir le catalogue
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

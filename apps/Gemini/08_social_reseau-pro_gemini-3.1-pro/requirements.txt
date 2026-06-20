@@ -1,0 +1,8 @@
+# Fichier optionnel / informatif
+# L'application a été construite de façon full-stack sur Node.js/TypeScript plutôt que Python (à cause des contraintes techniques du système).
+# Voici les packages Node.js équivalents utilisés :
+express==4.21.2
+sqlite==5.1.1
+sqlite3==6.0.1
+jsonwebtoken==9.0.3
+cors==2.8.6

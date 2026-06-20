@@ -1,0 +1,6 @@
+{
+  "name": "Permis de Construire API",
+  "description": "Plateforme de demande et de gestion des permis de construire en ligne.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

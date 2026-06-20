@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord - StreamDivert{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Profil actif -->
+    {% if session.get('active_profile_id') %}
+        {% set active_profile = profiles|selectattr('id', 'equalto', session.active_profile_id)|first %}
+        {% if active_profile %}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0;">
+            <div>
+                <h2>Bonjour, {{ active_profile.name }} !</h2>
+                <p style="color: var(--text-secondary);">
+                    {% if current_user.subscription_type == 'premium' %}
+                        🌟 Abonnement Premium actif
+                    {% else %}
+                        📺 Abonnement Gratuit - 
+                        <a href="{{ url_for('subscription') }}" style="color: var(--primary-color);">Passer à Premium</a>
+                    {% endif %}
+                </p>
+            </div>
+            <a href="{{ url_for('profiles') }}" class="btn" style="background: rgba(255,255,255,0.1);">Changer de profil</a>
+        </div>
+        {% endif %}
+    {% endif %}
+    
+    <!-- Contenus recommandés -->
+    {% if recommendations %}
+    <section style="margin-bottom: 3rem;">
+        <h3 style="margin-bottom: 1.5rem;">🎯 Recommandé pour vous</h3>
+        <div class="content-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+            {% for content in recommendations %}
+            <div class="content-card" onclick="window.location.href='{{ url_for('player', content_id=content.id) }}'">
+                <img src="{{ content.image_url }}" alt="{{ content.title }}"
+                     onerror="this.src='https://via.placeholder.com/220x330/1f1f1f/ffffff?text={{ content.title }}'">
+                <div class="content-info">
+                    <h3>{{ content.title }}</h3>
+                    <div class="content-meta">
+                        <span class="category-tag">{{ content.category }}</span>
+                        {% if content.is_premium %}
+                            <span class="badge badge-premium">Premium</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Tout le catalogue -->
+    <section>
+        <h3 style="margin-bottom: 1.5rem;">📚 Catalogue complet</h3>
+        <div class="content-grid">
+            {% for content in contents %}
+            <div class="content-card" onclick="window.location.href='{{ url_for('player', content_id=content.id) }}'">
+                <img src="{{ content.image_url }}" alt="{{ content.title }}"
+                     onerror="this.src='https://via.placeholder.com/300x450/1f1f1f/ffffff?text={{ content.title }}'">
+                <div class="content-info">
+                    <h3>{{ content.title }}</h3>
+                    <p>{{ content.description }}</p>
+                    <div class="content-meta">
+                        <span class="category-tag">{{ content.category }}</span>
+                        {% if content.is_premium %}
+                            <span class="badge badge-premium">Premium</span>
+                        {% else %}
+                            <span class="badge badge-free">Gratuit</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

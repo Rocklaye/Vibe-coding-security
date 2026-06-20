@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Abonnement - StreamDivert{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="text-align: center; padding: 4rem 0 2rem;">
+        <h1>Choisissez votre plan</h1>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 1rem auto;">
+            Passez à Premium pour accéder à tout le catalogue sans restriction
+        </p>
+    </div>
+    
+    {% if current_user.subscription_type == 'premium' %}
+    <div style="text-align: center; padding: 2rem; background: rgba(70, 211, 105, 0.1); border-radius: 8px; margin-bottom: 3rem;">
+        <h3>🌟 Vous êtes actuellement abonné Premium</h3>
+        <p style="color: var(--text-secondary);">
+            Votre abonnement expire le {{ current_user.subscription_end.strftime('%d/%m/%Y') }}
+        </p>
+        <a href="{{ url_for('cancel_subscription') }}" class="btn" style="background: rgba(229,9,20,0.2); color: var(--danger-color); margin-top: 1rem; text-decoration: none;"
+           onclick="return confirm('Êtes-vous sûr de vouloir annuler votre abonnement premium ?')">
+            Annuler l'abonnement
+        </a>
+    </div>
+    {% endif %}
+    
+    <div class="subscription-plans">
+        <!-- Plan Gratuit -->
+        <div class="plan-card">
+            <h3 class="plan-name">Gratuit</h3>
+            <div class="plan-price">0€<span>/mois</span></div>
+            <ul class="plan-features">
+                <li>Accès limité au catalogue</li>
+                <li>1 profil uniquement</li>
+                <li>Qualité standard</li>
+                <li>Publicités incluses</li>
+                <li>Pas de téléchargement</li>
+            </ul>
+            {% if current_user.subscription_type != 'free' %}
+            <button class="btn" style="background: rgba(255,255,255,0.1); width: 100%;" disabled>Plan actuel</button>
+            {% else %}
+            <button class="btn" style="background: rgba(255,255,255,0.1); width: 100%;" disabled>Plan actuel</button>
+            {% endif %}
+        </div>
+        
+        <!-- Plan Mensuel -->
+        <div class="plan-card featured">
+            <h3 class="plan-name">Premium Mensuel</h3>
+            <div class="plan-price">9,99€<span>/mois</span></div>
+            <ul class="plan-features">
+                <li>Tout le catalogue en illimité</li>
+                <li>Jusqu'à 5 profils</li>
+                <li>Qualité Ultra HD 4K</li>
+                <li>Sans publicité</li>
+                <li>Téléchargement hors-ligne</li>
+                <li>Contenus exclusifs</li>
+            </ul>
+            <form method="POST" action="{{ url_for('upgrade_subscription') }}">
+                <input type="hidden" name="plan" value="monthly">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Choisir le plan mensuel
+                </button>
+            </form>
+        </div>
+        
+        <!-- Plan Annuel -->
+        <div class="plan-card">
+            <h3 class="plan-name">Premium Annuel</h3>
+            <div class="plan-price">99,99€<span>/an</span></div>
+            <ul class="plan-features">
+                <li>Tout le catalogue en illimité</li>
+                <li>Jusqu'à 5 profils</li>
+                <li>Qualité Ultra HD 4K</li>
+                <li>Sans publicité</li>
+                <li>Téléchargement hors-ligne</li>
+                <li>Contenus exclusifs</li>
+                <li>2 mois offerts</li>
+            </ul>
+            <form method="POST" action="{{ url_for('upgrade_subscription') }}">
+                <input type="hidden" name="plan" value="yearly">
+                <button type="submit" class="btn btn-success" style="width: 100%;">
+                    Choisir le plan annuel
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div style="text-align: center; padding: 3rem 0; color: var(--text-secondary);">
+        <p>Paiement sécurisé • Annulation à tout moment • Support 24/7</p>
+        <p style="margin-top: 1rem;">💳 Paiement simulé - Aucune carte bancaire requise pour le test</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.stat-card {
+    transition: transform 0.2s;
+    border: none;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.05);
+}
+
+.vehicle-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.vehicle-item:hover {
+    background-color: #f8f9fa;
+}
+
+.incident-card {
+    transition: transform 0.2s;
+}
+
+.incident-card:hover {
+    transform: translateY(-2px);
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+}
+
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+#dashboardMap, #trackingMap {
+    border-radius: 0 0 10px 10px;
+}
+
+.modal-content {
+    border-radius: 15px;
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .stat-card h2 {
+        font-size: 1.5rem;
+    }
+    
+    #trackingMap {
+        height: 300px;
+    }
+}

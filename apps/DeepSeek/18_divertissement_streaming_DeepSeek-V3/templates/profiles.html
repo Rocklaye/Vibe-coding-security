@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Profils - StreamDivert{% endblock %}
+
+{% block content %}
+<div class="profiles-container">
+    <h1>Qui regarde ?</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 3rem;">Sélectionnez un profil ou créez-en un nouveau</p>
+    
+    <div class="profiles-grid">
+        {% for profile in profiles %}
+        <div class="profile-card" onclick="window.location.href='{{ url_for('switch_profile', profile_id=profile.id) }}'">
+            <div class="profile-avatar" style="background: linear-gradient(135deg, 
+                {% if profile.is_default %}var(--primary-color){% else %}#{{ '%06x' % (profile.id * 123456) }}{% endif %}, 
+                {% if profile.is_default %}#ff6b6b{% else %}#{{ '%06x' % (profile.id * 654321) }}{% endif %});">
+                {{ profile.name[0].upper() }}
+            </div>
+            <h3>{{ profile.name }}</h3>
+            {% if profile.is_default %}
+                <span style="color: var(--text-secondary); font-size: 0.9rem;">Profil principal</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        {% if profiles|length < 5 %}
+        <div class="profile-card add-profile" onclick="document.getElementById('add-profile-form').style.display='block'">
+            <div class="profile-avatar" style="background: rgba(255,255,255,0.1); font-size: 2rem;">
+                +
+            </div>
+            <h3>Ajouter un profil</h3>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Formulaire d'ajout de profil -->
+    <div id="add-profile-form" style="display: none; max-width: 400px; margin: 2rem auto;">
+        <form method="POST" action="{{ url_for('add_profile') }}">
+            <div class="form-group">
+                <label for="name">Nom du profil</label>
+                <input type="text" id="name" name="name" class="form-control" required 
+                       placeholder="Ex: Enfants, Parents..." maxlength="50">
+            </div>
+            <button type="submit" class="btn btn-primary">Créer le profil</button>
+            <button type="button" class="btn" style="background: rgba(255,255,255,0.1); margin-top: 0.5rem; width: 100%;" 
+                    onclick="document.getElementById('add-profile-form').style.display='none'">
+                Annuler
+            </button>
+        </form>
+    </div>
+    
+    <!-- Gestion des profils -->
+    <div style="margin-top: 4rem;">
+        <h3>Gérer les profils</h3>
+        <table style="width: 100%; max-width: 600px; margin: 2rem auto; background: var(--background-light); border-radius: 8px; overflow: hidden;">
+            <tbody>
+                {% for profile in profiles %}
+                <tr style="border-bottom: 1px solid #333;">
+                    <td style="padding: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: {% if profile.is_default %}var(--primary-color){% else %}#{{ '%06x' % (profile.id * 123456) }}{% endif %}; display: flex; align-items: center; justify-content: center;">
+                                {{ profile.name[0].upper() }}
+                            </div>
+                            <div>
+                                <strong>{{ profile.name }}</strong>
+                                {% if profile.is_default %}
+                                    <span style="color: var(--text-secondary); font-size: 0.8rem;"> (Principal)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 1rem; text-align: right;">
+                        <a href="{{ url_for('switch_profile', profile_id=profile.id) }}" class="btn" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; text-decoration: none; color: white;">Sélectionner</a>
+                        {% if not profile.is_default %}
+                        <a href="{{ url_for('delete_profile', profile_id=profile.id) }}" class="btn" style="background: rgba(229,9,20,0.2); padding: 0.5rem 1rem; text-decoration: none; color: var(--danger-color);"
+                           onclick="return confirm('Supprimer le profil {{ profile.name }} ?')">Supprimer</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

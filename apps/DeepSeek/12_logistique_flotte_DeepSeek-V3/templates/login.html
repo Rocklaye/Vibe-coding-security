@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion - Gestion de Flotte{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0">
+                    <i class="fas fa-truck me-2"></i>FleetManager Pro
+                </h4>
+                <small>Connexion</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/login">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Nom d'utilisateur</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mot de passe</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                    </button>
+                </form>
+                
+                <div class="mt-4">
+                    <h6 class="text-muted">Comptes de démonstration :</h6>
+                    <div class="small">
+                        <p class="mb-1"><strong>Admin :</strong> admin / admin123</p>
+                        <p class="mb-1"><strong>Dispatcher :</strong> dispatcher / dispatch123</p>
+                        <p class="mb-0"><strong>Chauffeur :</strong> driver1 / driver123</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

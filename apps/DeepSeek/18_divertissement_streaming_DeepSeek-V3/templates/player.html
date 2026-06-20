@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ content.title }} - StreamDivert{% endblock %}
+
+{% block content %}
+<div class="video-player-container">
+    <!-- Lecteur vidéo -->
+    <div class="video-player" data-content-id="{{ content.id }}">
+        <div class="video-simulator">
+            <div class="player-controls">
+                <button class="play-button">▶️</button>
+            </div>
+            
+            <div style="position: absolute; top: 20px; left: 20px; color: white; font-size: 1.2rem;">
+                <strong>{{ content.title }}</strong>
+            </div>
+            
+            <div style="position: absolute; top: 20px; right: 20px;">
+                <button onclick="toggleFullscreen()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">
+                    ⛶
+                </button>
+            </div>
+        </div>
+        
+        <!-- Barre de progression -->
+        <div style="padding: 1rem; background: var(--secondary-color);">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                <span id="current-time">00:00</span>
+                <span id="total-time">{{ "%02d:%02d"|format(content.duration // 60, content.duration % 60) if content.duration else "120:00" }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Informations du contenu -->
+    <div style="margin-top: 2rem;">
+        <h1>{{ content.title }}</h1>
+        <div style="display: flex; gap: 1rem; align-items: center; margin: 1rem 0;">
+            <span class="badge {% if content.is_premium %}badge-premium{% else %}badge-free{% endif %}">
+                {{ 'Premium' if content.is_premium else 'Gratuit' }}
+            </span>
+            <span class="category-tag">{{ content.category }}</span>
+            {% if content.rating %}
+            <span style="color: var(--warning-color);">★ {{ content.rating }}/5</span>
+            {% endif %}
+            {% if content.duration %}
+            <span style="color: var(--text-secondary);">⏱️ {{ content.duration }} min</span>
+            {% endif %}
+        </div>
+        <p style="color: var(--text-secondary); max-width: 800px;">{{ content.description }}</p>
+    </div>
+    
+    <!-- Contenus similaires -->
+    {% if similar_contents %}
+    <section style="margin-top: 3rem;">
+        <h3 style="margin-bottom: 1.5rem;">Contenus similaires</h3>
+        <div class="content-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+            {% for similar in similar_contents %}
+            <div class="content-card" onclick="window.location.href='{{ url_for('player', content_id=similar.id) }}'">
+                <img src="{{ similar.image_url }}" alt="{{ similar.title }}"
+                     onerror="this.src='https://via.placeholder.com/200x300/1f1f1f/ffffff?text={{ similar.title }}'">
+                <div class="content-info">
+                    <h3>{{ similar.title }}</h3>
+                    <div class="content-meta">
+                        <span class="category-tag">{{ similar.category }}</span>
+                        {% if similar.is_premium %}
+                            <span class="badge badge-premium">Premium</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

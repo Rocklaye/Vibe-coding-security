@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Administration - StreamDivert{% endblock %}
+
+{% block content %}
+<div class="container admin-container">
+    <h1 style="margin-bottom: 2rem;">📊 Tableau de bord administrateur</h1>
+    
+    <!-- Statistiques -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" data-target="{{ users|length }}">0</div>
+            <div class="stat-label">Utilisateurs inscrits</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value" data-target="{{ users|selectattr('subscription_type', 'equalto', 'premium')|list|length }}">0</div>
+            <div class="stat-label">Abonnés Premium</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value" data-target="{{ contents|length }}">0</div>
+            <div class="stat-label">Contenus disponibles</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-value" data-target="{{ subscriptions|length }}">0</div>
+            <div class="stat-label">Abonnements actifs</div>
+        </div>
+    </div>
+    
+    <!-- Gestion des contenus -->
+    <section style="margin-bottom: 3rem;">
+        <h2 style="margin-bottom: 1.5rem;">📺 Gestion des contenus</h2>
+        
+        <!-- Formulaire d'ajout -->
+        <div style="background: var(--background-light); padding: 2rem; border-radius: 8px; margin-bottom: 2rem;">
+            <h3>Ajouter un nouveau contenu</h3>
+            <form method="POST" action="{{ url_for('add_content') }}" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Titre</label>
+                    <input type="text" name="title" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <select name="category" class="form-control" required>
+                        <option value="">Sélectionner</option>
+                        <option value="Action">Action</option>
+                        <option value="Comédie">Comédie</option>
+                        <option value="Drame">Drame</option>
+                        <option value="Science-Fiction">Science-Fiction</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Crime">Crime</option>
+                        <option value="Documentaire">Documentaire</option>
+                        <option value="Horreur">Horreur</option>
+                        <option value="Romance">Romance</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>URL de l'image</label>
+                    <input type="url" name="image_url" class="form-control" placeholder="https://...">
+                </div>
+                
+                <div class="form-group" style="display: flex; align-items: center; gap: 1rem;">
+                    <label style="margin: 0;">
+                        <input type="checkbox" name="is_premium"> Contenu Premium
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="grid-column: 1 / -1;">
+                    Ajouter le contenu
+                </button>
+            </form>
+        </div>
+        
+        <!-- Liste des contenus -->
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Titre</th>
+                    <th>Catégorie</th>
+                    <th>Type</th>
+                    <th>Date d'ajout</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for content in contents %}
+                <tr>
+                    <td>{{ content.id }}</td>
+                    <td>
+                        <strong>{{ content.title }}</strong>
+                        {% if content.description %}
+                        <br><small style="color: var(--text-secondary);">{{ content.description[:50] }}...</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ content.category }}</td>
+                    <td>
+                        <span class="badge {% if content.is_premium %}badge-premium{% else %}badge-free{% endif %}">
+                            {{ 'Premium' if content.is_premium else 'Gratuit' }}
+                        </span>
+                    </td>
+                    <td>{{ content.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('delete_content', content_id=content.id) }}" 
+                           class="btn" style="background: rgba(229,9,20,0.2); color: var(--danger-color); padding: 0.3rem 0.8rem; text-decoration: none;"
+                           onclick="return confirm('Supprimer {{ content.title }} ?')">
+                            🗑️
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    
+    <!-- Gestion des utilisateurs -->
+    <section style="margin-bottom: 3rem;">
+        <h2 style="margin-bottom: 1.5rem;">👥 Gestion des utilisateurs</h2>
+        
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Abonnement</th>
+                    <th>Expiration</th>
+                    <th>Date d'inscription</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="badge {% if user.subscription_type == 'premium' %}badge-premium{% else %}badge-free{% endif %}">
+                            {{ user.subscription_type }}
+                        </span>
+                    </td>
+                    <td>{{ user.subscription_end.strftime('%d/%m/%Y') if user.subscription_end else 'N/A' }}</td>
+                    <td>{{ user.created_at.strftime('%d/%m/%Y') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    
+    <!-- Historique des abonnements -->
+    <section style="margin-bottom: 3rem;">
+        <h2 style="margin-bottom: 1.5rem;">💳 Historique des abonnements</h2>
+        
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Plan</th>
+                    <th>Prix</th>
+                    <th>Début</th>
+                    <th>Fin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subscriptions %}
+                <tr>
+                    <td>{{ sub.user.name }}</td>
+                    <td>{{ sub.plan }}</td>
+                    <td>{{ sub.price }}€</td>
+                    <td>{{ sub.start_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ sub.end_date.strftime('%d/%m/%Y') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+
+<script>
+    // Animation des compteurs
+    document.addEventListener('DOMContentLoaded', function() {
+        const counters = document.querySelectorAll('.stat-value[data-target]');
+        
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            const duration = 2000;
+            const start = 0;
+            let startTime = null;
+            
+            function updateCounter(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const value = Math.floor(progress * target);
+                
+                counter.textContent = value;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                }
+            }
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        requestAnimationFrame(updateCounter);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+            
+            observer.observe(counter);
+        });
+    });
+</script>
+{% endblock %}

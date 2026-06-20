@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>📊 Tableau de bord</h2>
+    
+    <!-- Formulaire d'ajout de transaction -->
+    <div class="card">
+        <h3>➕ Ajouter une transaction</h3>
+        <form id="transaction-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="type">Type de transaction</label>
+                    <select id="type" required>
+                        <option value="expense">💸 Dépense</option>
+                        <option value="income">💰 Revenu</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="category">Catégorie</label>
+                    <select id="category" required>
+                        <option value="">Choisir une catégorie</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="amount">Montant (€)</label>
+                    <input type="number" id="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description (optionnelle)</label>
+                <input type="text" id="description" placeholder="Ex: Courses au supermarché">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">✅ Ajouter la transaction</button>
+        </form>
+    </div>
+
+    <!-- Résumé mensuel -->
+    <div class="card">
+        <h3>📅 Résumé mensuel</h3>
+        <div class="month-selector">
+            <label for="month-selector">Sélectionner le mois :</label>
+            <input type="month" id="month-selector">
+        </div>
+        
+        <div class="summary-grid" id="summary-grid">
+            <div class="summary-item income">
+                <h4>💰 Revenus totaux</h4>
+                <p id="total-income">0.00 €</p>
+            </div>
+            <div class="summary-item expense">
+                <h4>💸 Dépenses totales</h4>
+                <p id="total-expense">0.00 €</p>
+            </div>
+            <div class="summary-item balance">
+                <h4>📊 Solde du mois</h4>
+                <p id="balance">0.00 €</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique des dépenses -->
+    <div class="card">
+        <h3>📈 Répartition des dépenses par catégorie</h3>
+        <div style="max-width: 600px; margin: 0 auto;">
+            <canvas id="expense-chart"></canvas>
+        </div>
+        <p style="text-align: center; margin-top: 1rem; color: #666;">
+            <em>Ce graphique montre la répartition de vos dépenses du mois sélectionné</em>
+        </p>
+    </div>
+
+    <!-- Historique des transactions -->
+    <div class="card">
+        <h3>📋 Historique des transactions</h3>
+        
+        <div class="filters">
+            <div class="form-group">
+                <label for="filter-start">📅 Date de début</label>
+                <input type="date" id="filter-start">
+            </div>
+            <div class="form-group">
+                <label for="filter-end">📅 Date de fin</label>
+                <input type="date" id="filter-end">
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button id="filter-btn" class="btn btn-secondary">🔍 Filtrer</button>
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button id="reset-filter-btn" class="btn btn-secondary" style="background: #28a745;">🔄 Réinitialiser</button>
+            </div>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table id="transactions-table">
+                <thead>
+                    <tr>
+                        <th>📅 Date</th>
+                        <th>📂 Type</th>
+                        <th>🏷️ Catégorie</th>
+                        <th>📝 Description</th>
+                        <th>💶 Montant</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-body">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem;">
+                            Chargement des transactions...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Script supplémentaire pour le bouton de réinitialisation
+    document.addEventListener('DOMContentLoaded', function() {
+        const resetBtn = document.getElementById('reset-filter-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                document.getElementById('filter-start').value = '';
+                document.getElementById('filter-end').value = '';
+                if (typeof loadAllTransactions === 'function') {
+                    loadAllTransactions();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

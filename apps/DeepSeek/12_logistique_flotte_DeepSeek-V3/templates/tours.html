@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Tournées{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-route text-primary me-2"></i>Gestion des Tournées</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if current_user.role in ['admin', 'dispatcher'] %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTourModal">
+            <i class="fas fa-plus me-1"></i>Nouvelle tournée
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Référence</th>
+                        <th>Départ</th>
+                        <th>Arrivée</th>
+                        <th>Chauffeur</th>
+                        <th>Véhicule</th>
+                        <th>Distance</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tour in tours %}
+                    <tr>
+                        <td><strong>{{ tour.reference }}</strong></td>
+                        <td>
+                            {{ tour.departure_address[:30] }}...
+                            <br>
+                            <small class="text-muted">{{ tour.planned_departure.strftime('%d/%m %H:%M') }}</small>
+                        </td>
+                        <td>
+                            {{ tour.arrival_address[:30] }}...
+                            <br>
+                            <small class="text-muted">{{ tour.planned_arrival.strftime('%d/%m %H:%M') if tour.planned_arrival else 'N/A' }}</small>
+                        </td>
+                        <td>
+                            {{ tour.assigned_driver.full_name if tour.assigned_driver else 'Non assigné' }}
+                        </td>
+                        <td>
+                            {{ tour.vehicle.registration if tour.vehicle else 'N/A' }}
+                        </td>
+                        <td>
+                            {% if tour.distance_km %}
+                                {{ "%.1f"|format(tour.distance_km) }} km
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 
+                                'warning' if tour.status == 'en_cours' 
+                                else 'success' if tour.status == 'termine' 
+                                else 'info' if tour.status == 'planifie' 
+                                else 'danger' 
+                            }}">
+                                {{ tour.status | title }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="updateTourStatus({{ tour.id }}, 'en_cours')" 
+                                        {% if tour.status != 'planifie' %}disabled{% endif %}>
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="btn btn-outline-success" onclick="updateTourStatus({{ tour.id }}, 'termine')"
+                                        {% if tour.status != 'en_cours' %}disabled{% endif %}>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="updateTourStatus({{ tour.id }}, 'annule')"
+                                        {% if tour.status == 'termine' %}disabled{% endif %}>
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Création Tournée -->
+<div class="modal fade" id="createTourModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Créer une nouvelle tournée</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTourForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Adresse de départ *</label>
+                            <input type="text" class="form-control" name="departure_address" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Adresse d'arrivée *</label>
+                            <input type="text" class="form-control" name="arrival_address" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Départ prévu *</label>
+                            <input type="datetime-local" class="form-control" name="planned_departure" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Arrivée prévue</label>
+                            <input type="datetime-local" class="form-control" name="planned_arrival">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Chauffeur</label>
+                            <select class="form-control" name="driver_id">
+                                <option value="">Choisir...</option>
+                                {% for driver in drivers %}
+                                <option value="{{ driver.id }}">{{ driver.user.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Véhicule</label>
+                            <select class="form-control" name="vehicle_id">
+                                <option value="">Choisir...</option>
+                                {% for vehicle in vehicles %}
+                                <option value="{{ vehicle.id }}">{{ vehicle.registration }} - {{ vehicle.brand }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Distance (km)</label>
+                            <input type="number" class="form-control" name="distance_km" step="0.1">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Poids (kg)</label>
+                            <input type="number" class="form-control" name="cargo_weight_kg" step="0.1">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-control" name="cargo_description">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" name="notes" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="createTour()">Créer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function createTour() {
+    const form = document.getElementById('createTourForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/api/tours', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + result.error);
+        }
+    });
+}
+
+function updateTourStatus(tourId, status) {
+    fetch(`/api/tours/${tourId}/status`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status: status})
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>💡 Gérez votre budget personnel</h1>
+    <p>Suivez vos dépenses, visualisez vos revenus et atteignez vos objectifs financiers</p>
+    <div class="hero-buttons">
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Commencer maintenant</a>
+        <a href="{{ url_for('login') }}" class="btn btn-secondary">Se connecter</a>
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <h3>📊 Visualisez vos finances</h3>
+        <p>Des graphiques intuitifs pour comprendre où va votre argent en un coup d'œil</p>
+    </div>
+    <div class="feature-card">
+        <h3>💰 Gérez vos transactions</h3>
+        <p>Ajoutez facilement vos revenus et dépenses avec des catégories personnalisées</p>
+    </div>
+    <div class="feature-card">
+        <h3>📅 Suivez votre historique</h3>
+        <p>Accédez à l'historique complet de vos transactions et filtrez par période</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de Bord - Gestion de Flotte{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>
+            <i class="fas fa-chart-line text-primary me-2"></i>Tableau de Bord
+            <small class="text-muted">{{ now().strftime('%d/%m/%Y %H:%M') if now else '' }}</small>
+        </h2>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Véhicules</h6>
+                        <h2 class="mb-0">{{ stats.total_vehicles }}</h2>
+                    </div>
+                    <i class="fas fa-truck fa-3x opacity-50"></i>
+                </div>
+                <small>{{ stats.active_vehicles }} en mission</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Disponibles</h6>
+                        <h2 class="mb-0">{{ stats.available_vehicles }}</h2>
+                    </div>
+                    <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                </div>
+                <small>{{ stats.total_drivers }} chauffeurs</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Tournées</h6>
+                        <h2 class="mb-0">{{ stats.active_tours }}</h2>
+                    </div>
+                    <i class="fas fa-route fa-3x opacity-50"></i>
+                </div>
+                <small>{{ stats.planned_tours }} planifiées</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Incidents</h6>
+                        <h2 class="mb-0">{{ stats.open_incidents }}</h2>
+                    </div>
+                    <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                </div>
+                <small>{{ stats.maintenance_vehicles }} en maintenance</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Carte de suivi -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt text-danger me-2"></i>Suivi en temps réel</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="dashboardMap" style="height: 400px;"></div>
+            </div>
+            <div class="card-footer bg-white">
+                <button class="btn btn-sm btn-outline-primary" onclick="refreshMap()">
+                    <i class="fas fa-sync-alt me-1"></i>Actualiser
+                </button>
+                {% if current_user.role == 'admin' %}
+                <button class="btn btn-sm btn-outline-success" onclick="toggleGPSSimulation()">
+                    <i class="fas fa-play me-1"></i>Simulation GPS
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Incidents récents -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-circle text-warning me-2"></i>Incidents récents</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_incidents %}
+                    {% for incident in recent_incidents %}
+                    <div class="incident-item mb-3 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between">
+                            <span class="badge bg-{{ 'danger' if incident.severity == 'critique' else 'warning' if incident.severity == 'haut' else 'info' }}">
+                                {{ incident.severity }}
+                            </span>
+                            <small class="text-muted">{{ incident.created_at.strftime('%d/%m %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1 mt-2">{{ incident.description[:100] }}...</p>
+                        <small>
+                            <span class="text-muted">Véhicule : </span>
+                            <strong>{{ incident.vehicle.registration if incident.vehicle else 'N/A' }}</strong>
+                        </small>
+                        <br>
+                        <span class="badge bg-secondary">{{ incident.status }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Aucun incident récent</p>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white">
+                <a href="/incidents" class="btn btn-sm btn-outline-primary w-100">
+                    Voir tous les incidents
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Graphiques -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>État de la flotte</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="fleetChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Kilométrage par véhicule</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="mileageChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    // Initialiser la carte
+    const gpsData = {{ gps_data|safe }};
+    let map;
+    let simulationActive = false;
+    
+    initDashboardMap(gpsData);
+    
+    function refreshMap() {
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                // Mettre à jour les statistiques
+                location.reload();
+            });
+    }
+    
+    function toggleGPSSimulation() {
+        const endpoint = simulationActive ? '/api/stop_gps_simulation' : '/api/start_gps_simulation';
+        
+        fetch(endpoint)
+            .then(response => response.json())
+            .then(data => {
+                simulationActive = !simulationActive;
+                alert(data.message);
+            });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion - StreamDivert{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Connexion</h2>
+    
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" required 
+                   placeholder="votre@email.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" class="form-control" required 
+                   placeholder="Votre mot de passe">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Se connecter</button>
+    </form>
+    
+    <p style="margin-top: 1.5rem; text-align: center; color: var(--text-secondary);">
+        Pas encore de compte ? 
+        <a href="{{ url_for('register') }}" style="color: var(--primary-color);">Inscrivez-vous</a>
+    </p>
+    
+    <div style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+        <p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center;">
+            <strong>Comptes de test :</strong><br>
+            Admin : admin@stream.com / admin123<br>
+            Premium : premium@test.com / test123
+        </p>
+    </div>
+</div>
+{% endblock %}

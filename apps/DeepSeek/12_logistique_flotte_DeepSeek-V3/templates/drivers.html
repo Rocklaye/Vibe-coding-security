@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Chauffeurs{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-users text-primary me-2"></i>Gestion des Chauffeurs</h2>
+    </div>
+</div>
+
+<div class="row">
+    {% for driver in drivers %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">{{ driver.user.full_name }}</h5>
+                <small class="text-muted">{{ driver.user.username }}</small>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong><i class="fas fa-id-card me-2"></i>Permis :</strong> 
+                    {{ driver.license_number }} ({{ driver.license_type }})
+                </p>
+                <p>
+                    <strong><i class="fas fa-calendar me-2"></i>Expiration :</strong>
+                    {{ driver.license_expiry.strftime('%d/%m/%Y') if driver.license_expiry else 'N/A' }}
+                </p>
+                <p>
+                    <strong><i class="fas fa-briefcase me-2"></i>Expérience :</strong>
+                    {{ driver.experience_years }} ans
+                </p>
+                <p>
+                    <strong><i class="fas fa-circle me-2 text-{{ 'success' if driver.status == 'disponible' else 'warning' if driver.status == 'en_mission' else 'danger' }}"></i>Statut :</strong>
+                    <span class="badge bg-{{ 'success' if driver.status == 'disponible' else 'warning' if driver.status == 'en_mission' else 'secondary' }}">
+                        {{ driver.status | replace('_', ' ') | title }}
+                    </span>
+                </p>
+                
+                {% if driver.vehicle %}
+                <div class="alert alert-info mb-0">
+                    <strong>Véhicule assigné :</strong><br>
+                    {{ driver.vehicle.registration }} - {{ driver.vehicle.brand }} {{ driver.vehicle.model }}
+                    <br>
+                    <small>{{ "{:,}".format(driver.vehicle.mileage) }} km</small>
+                </div>
+                {% else %}
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Aucun véhicule assigné
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-white">
+                <select class="form-control form-control-sm" onchange="assignVehicle({{ driver.id }}, this.value)">
+                    <option value="">Changer de véhicule...</option>
+                    <option value="">Aucun véhicule</option>
+                    {% for vehicle in vehicles %}
+                    <option value="{{ vehicle.id }}" {% if driver.vehicle_id == vehicle.id %}selected{% endif %}>
+                        {{ vehicle.registration }} - {{ vehicle.brand }} {{ vehicle.model }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function assignVehicle(driverId, vehicleId) {
+    fetch('/api/drivers/assign', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            driver_id: driverId,
+            vehicle_id: vehicleId || null
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+
+## Fichier requirements.txt
+
+```txt
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.5
+Flask-Login==0.6.2
+Werkzeug==2.3.6
