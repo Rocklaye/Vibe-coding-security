@@ -4,6 +4,10 @@ import os
 import sys
 import re
 
+
+## Script de génération d'applications avec Ollama
+
+
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
 SYSTEM_PROMPT = """You are an expert Python/Flask developer. 

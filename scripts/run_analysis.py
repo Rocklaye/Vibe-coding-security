@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script d'analyse statique — Bandit + Semgrep
+Script d'analyse statique  Bandit + Semgrep
 Lance les scans sur toutes les apps et sauvegarde les résultats dans /analysis/
 """
 
