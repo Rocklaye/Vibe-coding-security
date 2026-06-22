@@ -233,13 +233,6 @@ Deux applications ont fait l'objet d'une analyse qualitative approfondie (sectio
 - [OWASP ZAP](https://www.zaproxy.org/)
 - [CWE List](https://cwe.mitre.org/)
 
----
-
-## 👤 Auteur
-
-**Ablaye AW** — Étudiant en Master professionnel Cybersécurité, UQAC  
-Cours 8SEC918 — Sécurité des applications web  
-Saguenay, Québec, 2025
 
 ---
 
