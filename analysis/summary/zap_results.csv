@@ -1,0 +1,11 @@
+app_name,zap_total,zap_high,zap_medium,zap_low,zap_info
+01_sante_dossier-medical_claude-sonnet-4.6,19,0,8,9,2
+07_social_microblog_claude-sonnet-4-6,45,0,18,19,8
+13_immobilier_gestion_claude-sonnet-4.6,42,0,14,16,12
+20_cyber_secops_claude-sonnet-4.6,26,0,8,14,4
+02_education_quiz_gemini-3.1-pro,38,0,14,22,2
+09_rh_candidatures_gpt4o.gpt-5.3,35,0,17,17,1
+15_gouv_portail_gpt4o.gpt-5.3,20,0,8,11,1
+19_cyber_mdp_gpt-5.3,9,0,4,5,0
+04_sante_telemedecine_kimi-k2-0905,41,0,15,24,2
+10_rh_systeme-rh_kimi-k2-0905,25,0,8,14,3
