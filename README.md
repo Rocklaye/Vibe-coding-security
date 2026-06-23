@@ -13,9 +13,7 @@ Ce projet évalue **quantitativement et qualitativement** les vulnérabilités d
 | Domaines couverts | 10 |
 | Vulnérabilités détectées (statique) | **1 130** |
 | Outils d'analyse | Bandit · Semgrep · OWASP ZAP |
-| Apps à 0 vuln Python | 3 (stack Node.js/React) |
 
-**Résultat clé :** 100 % des applications contiennent au moins une vulnérabilité HIGH (`debug=True` en production). GPT-5.3 génère le code le plus fonctionnel mais le plus vulnérable (562 vulns / 4 apps). Claude Sonnet 4.6 et Kimi K2 0905 offrent le meilleur équilibre sécurité/complétude.
 
 ---
 
@@ -63,9 +61,7 @@ Vibe-coding-security/
 | 5 | **DeepSeek-V3** | DeepSeek | Local Ollama | 06, 12, 18 | 42 | partiel*** |
 | 6 | **Llama 3 8B** | Meta | Local Ollama | 05, 11, 17 | 5 | incomplet*** |
 
-\* Hors App 01 (Semgrep très sensible sur code médical)  
-\** App 02 uniquement — Apps 08 et 14 en Node.js (non analysables par outils Python)  
-\*** Code incomplet ou partiel généré par le modèle local
+
 
 ---
 
@@ -218,9 +214,9 @@ Chaque prompt impose les contraintes suivantes :
 
 Deux applications ont fait l'objet d'une analyse qualitative approfondie (section 4 du rapport) :
 
-**App 19 — Gestionnaire de mots de passe (GPT-5.3)** : Paradoxe absolu — un outil de cybersécurité lui-même vulnérable. Utilise SHA1 pour hasher les mots de passe, `eval()` pour exécuter du code dynamique, et `pickle` pour la sérialisation. CVSS max : 9.8.
+**App 19 - Gestionnaire de mots de passe (GPT-5.3)** : Paradoxe absolu un outil de cybersécurité lui-même vulnérable. 
 
-**App 01 — Dossier médical patient (Claude Sonnet 4.6)** : Application manipulant des données de santé personnelles avec une clé secrète hardcodée et `debug=True`. Problématique RGPD et Loi 25.
+**App 01 - Dossier médical patient (Claude Sonnet 4.6)** : Application manipulant des données de santé personnelles 
 
 ---
 
