@@ -1,4 +1,4 @@
-# Vibe Coding Security — Évaluation des vulnérabilités dans les applications générées par l'IA
+# Vibe Coding Security - Évaluation des vulnérabilités dans les applications générées par l'IA
 
 ---
 
